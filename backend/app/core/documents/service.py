@@ -212,7 +212,7 @@ def _require_document_permission_admin(
         )
     except AuthorizationError:
         assert original_error is not None
-        raise original_error
+        raise original_error from None
 
 
 def _get_locked_document_for_permission_admin(

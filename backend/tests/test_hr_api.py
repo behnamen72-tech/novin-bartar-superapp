@@ -366,7 +366,7 @@ def test_shared_job_profile_cannot_narrow_scope_while_descendant_position_is_act
     assert narrowed.json()["scope_mode"] == "self"
 
 
-def test_employment_relationship_dates_support_future_planning_without_exposing_not_yet_active_people(
+def test_future_employment_relationship_does_not_expose_not_yet_active_people(
     client: TestClient, hr_db: sessionmaker[Session]
 ) -> None:
     ids = _seed_tree(hr_db)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import Select, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
@@ -90,7 +90,9 @@ def _require_resource_permission(
         raise SupplierNotFoundError(not_found_message)
 
 
-def _supplier_statement(supplier_id: UUID, *, for_update: bool = False):
+def _supplier_statement(
+    supplier_id: UUID, *, for_update: bool = False
+) -> Select[tuple[SupplierProfile]]:
     statement = (
         select(SupplierProfile)
         .where(SupplierProfile.id == supplier_id)

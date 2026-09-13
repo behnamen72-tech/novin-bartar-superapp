@@ -396,7 +396,7 @@ def list_workflow_instances(
     session: Annotated[Session, Depends(get_db)],
     resource_type: str | None = None,
     resource_id: str | None = None,
-    instance_status: WorkflowInstanceStatus | None = Query(default=None, alias="status"),
+    instance_status: Annotated[WorkflowInstanceStatus | None, Query(alias="status")] = None,
     limit: int = Query(default=100, ge=1, le=500),
     offset: int = Query(default=0, ge=0),
 ) -> list[WorkflowInstanceResponse]:

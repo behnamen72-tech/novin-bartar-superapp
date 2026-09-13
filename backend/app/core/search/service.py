@@ -108,7 +108,10 @@ def search_core(
                 entity_type=SearchEntityType.DOCUMENT,
                 id=document.id,
                 title=document.title,
-                subtitle=f"{document.document_type} · {document.status.value if hasattr(document.status, 'value') else document.status}",
+                subtitle=(
+                    f"{document.document_type} · "
+                    f"{getattr(document.status, 'value', document.status)}"
+                ),
                 organization_id=document.organization_id,
                 action_path="/?view=documents",
             )

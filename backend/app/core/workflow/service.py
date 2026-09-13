@@ -5,6 +5,7 @@ from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm.interfaces import LoaderOption
 
 from app.core.access.permissions import WORKFLOW_EXECUTE, WORKFLOW_MANAGE, WORKFLOW_READ
 from app.core.access.policy import (
@@ -50,14 +51,14 @@ class WorkflowValidationError(ValueError):
     pass
 
 
-def _definition_options():
+def _definition_options() -> tuple[LoaderOption, ...]:
     return (
         selectinload(WorkflowDefinition.states),
         selectinload(WorkflowDefinition.transitions),
     )
 
 
-def _instance_options():
+def _instance_options() -> tuple[LoaderOption, ...]:
     return (
         selectinload(WorkflowInstance.history),
         selectinload(WorkflowInstance.definition),

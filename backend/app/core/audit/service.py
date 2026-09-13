@@ -1,3 +1,4 @@
+from collections.abc import Mapping
 from uuid import UUID
 
 from sqlalchemy import select
@@ -19,9 +20,9 @@ def record_audit_event(
     action: str,
     resource_type: str,
     resource_id: str | UUID,
-    before_state: dict[str, object] | None = None,
-    after_state: dict[str, object] | None = None,
-    metadata: dict[str, object] | None = None,
+    before_state: Mapping[str, object] | None = None,
+    after_state: Mapping[str, object] | None = None,
+    metadata: Mapping[str, object] | None = None,
     source: str = "api",
     request_id: str | None = None,
 ) -> AuditEvent:

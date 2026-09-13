@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from sqlalchemy import or_, select
+from sqlalchemy import Select, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
@@ -91,7 +91,9 @@ def _require_resource_permission(
         raise CRMNotFoundError(not_found_message)
 
 
-def _customer_statement(customer_id: UUID, *, for_update: bool = False):
+def _customer_statement(
+    customer_id: UUID, *, for_update: bool = False
+) -> Select[tuple[CustomerCRMRecord]]:
     statement = (
         select(CustomerCRMRecord)
         .where(CustomerCRMRecord.id == customer_id)

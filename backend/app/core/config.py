@@ -64,7 +64,8 @@ class Settings(BaseSettings):
         secret = value.get_secret_value()
         if len(secret) < 32 or secret.startswith("replace-with-"):
             raise ValueError(
-                "COMMERCE_INTEGRATION_JWT_SECRET must be a dedicated random secret of at least 32 characters."
+                "COMMERCE_INTEGRATION_JWT_SECRET must be a dedicated random secret "
+                "of at least 32 characters."
             )
         return value
 
