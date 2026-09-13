@@ -1,0 +1,3 @@
+Authoritative source package: novin-bartar-superapp-b6.6-people-user-management-full-review.zip
+SHA256: ce64e959e98bef70beced2e7cc235a9dd9450280acb240771dd49c0ebc9b8e51
+Created: 2026-09-10

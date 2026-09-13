@@ -1,0 +1,3 @@
+D1 HR Foundation is based on the verified C3 Search full-review baseline.
+C3 was subsequently Claude-approved with no blocking findings.
+Source baseline package: novin-bartar-superapp-c3-search-full-review.zip

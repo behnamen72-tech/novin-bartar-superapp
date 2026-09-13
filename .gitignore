@@ -1,0 +1,23 @@
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+node_modules/
+.next/
+out/
+.env
+.env.*
+!.env.example
+.DS_Store
+.vscode/
+.idea/
+.coverage
+htmlcov/
+
+# Local document storage (development only)
+backend/storage/
+
+# TypeScript incremental build cache
+*.tsbuildinfo

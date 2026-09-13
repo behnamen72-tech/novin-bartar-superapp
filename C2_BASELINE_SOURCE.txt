@@ -1,0 +1,2 @@
+Baseline: novin-bartar-superapp-c1-workflow-full-review.zip
+C1 Claude-approved. C2 adds Notifications Core + UI on top of that baseline.

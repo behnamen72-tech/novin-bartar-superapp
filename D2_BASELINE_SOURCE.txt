@@ -1,0 +1,4 @@
+D2 implementation baseline:
+novin-bartar-superapp-d1-hr-foundation-full-review.zip
+
+D1 was independently Claude-approved before D2 work began. D2 preserves the approved B/C/D1 security and architecture behavior and adds Customer Reference / CRM Foundation only.

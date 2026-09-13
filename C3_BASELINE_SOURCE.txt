@@ -1,0 +1,4 @@
+Baseline: novin-bartar-superapp-c2-notifications-full-review.zip
+Baseline phase: C2 Notifications Core + UI
+C2 review status: Claude-approved in the project conversation; no blockers reported.
+C3 change: Permission-aware Search Core + UI over Organizations, People, and Documents.

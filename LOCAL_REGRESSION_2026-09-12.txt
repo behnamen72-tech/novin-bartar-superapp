@@ -1,0 +1,48 @@
+Frontend deterministic regression
+check-b63-navigation.cjs: B6.3 navigation checks passed (13 assertions).
+check-b64-dashboard.cjs: B6.4 dashboard checks passed (11 assertions).
+
+check-b65-organizations.cjs: B6.5 organization-management checks passed (18 assertions).
+
+check-b66-people-users.cjs: B6.6 people/user-management checks passed (37 assertions).
+
+check-b67-documents.cjs: B6.7 documents-management checks passed (40 assertions).
+
+check-b68-access.cjs: B6.8 access-management checks passed (36 assertions).
+check-c1-workflow.cjs: C1 workflow UI checks passed (43 assertions).
+check-c2-notifications.cjs: C2 notification UI checks passed (29 assertions).
+check-c3-search.cjs: C3 search UI checks passed (19 assertions).
+check-d1-hr.cjs: D1 HR foundation UI checks passed (47 assertions).
+check-d2-customers.cjs: D2 Customer CRM UI checks passed (56 assertions).
+check-d3-suppliers.cjs: D3 Supplier Foundation UI checks passed (57 assertions).
+
+Backend isolated test files
+== tests/test_app_startup_wiring.py ==
+.                                                                        [100%]
+1 passed in 1.85s
+== tests/test_audit.py ==
+.....                                                                    [100%]
+5 passed in 1.80s
+== tests/test_auth_api.py ==
+.......                                                                  [100%]
+7 passed in 1.99s
+== tests/test_auth_security.py ==
+......                                                                   [100%]
+6 passed in 0.32s
+== tests/test_auth_session_api.py ==
+........                                                                 [100%]
+8 passed in 2.12s
+== tests/test_authorization_api.py ==
+...                                                                      [100%]
+3 passed in 1.40s
+== tests/test_authorization_policy.py ==
+.....                                                                    [100%]
+5 passed in 0.74s
+== tests/test_core_read_api.py ==
+...                                                                      [100%]
+3 passed in 1.96s
+
+--- EXECUTION NOTE ---
+The overall container command hit its execution timeout before the isolated backend-file sweep completed.
+Do NOT interpret this file as a full backend regression pass. Only the frontend deterministic suite completed fully.
+Full backend regression remains a required networked CI gate.

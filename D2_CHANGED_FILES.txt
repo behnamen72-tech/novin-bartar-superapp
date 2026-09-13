@@ -1,0 +1,45 @@
+Files .env.example and .env.example differ
+Files AGENTS.md and AGENTS.md differ
+Only in .: CLAUDE_APPROVAL_D1.md
+Only in .: CLAUDE_APPROVAL_D2_ARCHITECTURE.md
+Only in .: CLAUDE_REVIEW_D2.md
+Files CODEX_START_HERE.md and CODEX_START_HERE.md differ
+Files CURRENT_REVIEW_STATUS.md and CURRENT_REVIEW_STATUS.md differ
+Only in .: D2_BASELINE_SOURCE.txt
+Only in .: D2_TEST_RESULTS.md
+Files README.md and README.md differ
+Only in ./backend/alembic/versions: 20260911_0016_customer_crm_foundation.py
+Files backend/app/api/v1/router.py and backend/app/api/v1/router.py differ
+Only in ./backend/app/api/v1/routes: customers.py
+Files backend/app/core/config.py and backend/app/core/config.py differ
+Files backend/app/core/search/schemas.py and backend/app/core/search/schemas.py differ
+Files backend/app/core/search/service.py and backend/app/core/search/service.py differ
+Files backend/app/db/models.py and backend/app/db/models.py differ
+Only in ./backend/app/modules/customers: integration.py
+Only in ./backend/app/modules/customers: models.py
+Only in ./backend/app/modules/customers: permissions.py
+Only in ./backend/app/modules/customers: schemas.py
+Only in ./backend/app/modules/customers: service.py
+Files backend/scripts/bootstrap_access.py and backend/scripts/bootstrap_access.py differ
+Files backend/scripts/seed_demo.py and backend/scripts/seed_demo.py differ
+Only in ./backend/tests: test_customer_crm_api.py
+Only in ./backend/tests: test_customer_crm_integration.py
+Files backend/tests/test_search_api.py and backend/tests/test_search_api.py differ
+Only in ./docs: api-integration-contract-v1-virtual-store-superapp.md
+Files docs/architecture.md and docs/architecture.md differ
+Only in ./docs: phase-d2-customer-crm-foundation.md
+Only in ./frontend/app/api/modules: customers
+Files frontend/app/globals.css and frontend/app/globals.css differ
+Files frontend/app/page.tsx and frontend/app/page.tsx differ
+Files frontend/components/app/AppShell.tsx and frontend/components/app/AppShell.tsx differ
+Files frontend/components/core/SearchManagementView.tsx and frontend/components/core/SearchManagementView.tsx differ
+Only in ./frontend/components/modules: CustomerCRMView.tsx
+Files frontend/lib/core-types.ts and frontend/lib/core-types.ts differ
+Only in ./frontend/lib: crm-management.ts
+Files frontend/lib/navigation.ts and frontend/lib/navigation.ts differ
+Files frontend/lib/permissions.ts and frontend/lib/permissions.ts differ
+Files frontend/package.json and frontend/package.json differ
+Files frontend/scripts/check-d1-hr.cjs and frontend/scripts/check-d1-hr.cjs differ
+Only in ./frontend/scripts: check-d2-customers.cjs
+Only in .: D2_CHANGED_FILES.txt
+Only in .: D2_SHA256SUMS.txt

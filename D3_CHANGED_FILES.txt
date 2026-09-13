@@ -1,0 +1,59 @@
+D3 implementation files created or modified relative to the D2 functional baseline
+
+Backend — created
+backend/app/modules/suppliers/permissions.py
+backend/app/modules/suppliers/models.py
+backend/app/modules/suppliers/schemas.py
+backend/app/modules/suppliers/service.py
+backend/app/api/v1/routes/suppliers.py
+backend/alembic/versions/20260911_0017_suppliers_foundation.py
+backend/tests/test_suppliers_api.py
+
+Backend — modified
+backend/app/db/models.py
+backend/app/api/v1/router.py
+backend/app/core/search/schemas.py
+backend/app/core/search/service.py
+backend/tests/test_search_api.py
+
+Frontend — created
+frontend/components/modules/SupplierFoundationView.tsx
+frontend/scripts/check-d3-suppliers.cjs
+frontend/app/api/modules/suppliers/assignees/route.ts
+frontend/app/api/modules/suppliers/organizations/route.ts
+frontend/app/api/modules/suppliers/suppliers/[supplierId]/assign/route.ts
+frontend/app/api/modules/suppliers/suppliers/[supplierId]/external-references/[referenceId]/route.ts
+frontend/app/api/modules/suppliers/suppliers/[supplierId]/external-references/route.ts
+frontend/app/api/modules/suppliers/suppliers/[supplierId]/notes/[noteId]/route.ts
+frontend/app/api/modules/suppliers/suppliers/[supplierId]/notes/route.ts
+frontend/app/api/modules/suppliers/suppliers/[supplierId]/representatives/[representativeId]/route.ts
+frontend/app/api/modules/suppliers/suppliers/[supplierId]/representatives/route.ts
+frontend/app/api/modules/suppliers/suppliers/[supplierId]/route.ts
+frontend/app/api/modules/suppliers/suppliers/[supplierId]/status/route.ts
+frontend/app/api/modules/suppliers/suppliers/[supplierId]/tags/[tagId]/route.ts
+frontend/app/api/modules/suppliers/suppliers/[supplierId]/unassign/route.ts
+frontend/app/api/modules/suppliers/suppliers/route.ts
+frontend/app/api/modules/suppliers/tags/catalog/route.ts
+
+Frontend — modified
+frontend/lib/core-types.ts
+frontend/lib/navigation.ts
+frontend/lib/permissions.ts
+frontend/app/page.tsx
+frontend/components/core/SearchManagementView.tsx
+frontend/components/app/AppShell.tsx
+frontend/package.json
+frontend/scripts/check-d1-hr.cjs
+frontend/scripts/check-d2-customers.cjs
+
+Review/spec/status — created or updated
+docs/phase-d3-suppliers-foundation.md
+CLAUDE_APPROVAL_D2_IMPLEMENTATION.md
+CLAUDE_APPROVAL_D3_ARCHITECTURE.md
+D3_TEST_RESULTS.md
+CLAUDE_REVIEW_D3.md
+AGENTS.md
+CURRENT_REVIEW_STATUS.md
+CODEX_START_HERE.md
+README.md
+D3_ALEMBIC_OFFLINE.sql

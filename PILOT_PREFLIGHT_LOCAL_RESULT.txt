@@ -1,0 +1,16 @@
+Novin Bartar Super App — pilot preflight
+Root: /mnt/data/novin_exec_d3
+
+WARN  Python is 3.13; CI baseline is Python 3.12
+PASS  Node available: v22.16.0
+PASS  npm available: 10.9.2
+FAIL  frontend/package-lock.json is missing; reproducible frontend CI/pilot is blocked
+WARN  pilot environment file not found at /mnt/data/novin_exec_d3/backend/.env; set PILOT_ENV_FILE to validate a deployment env file
+PASS  exactly one Alembic head: 20260911_0017 (head)
+PASS  backend compile sweep
+PASS  D3 frontend deterministic check
+
+Summary: 1 failure(s), 2 warning(s)
+
+exit_code=1
+Expected local blocker: missing frontend/package-lock.json.
