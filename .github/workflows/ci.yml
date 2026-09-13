@@ -65,7 +65,7 @@ jobs:
         run: python -m pip install --upgrade pip && pip install -r requirements.txt
 
       - name: Run all backend tests in isolated processes
-        run: ./scripts/ci/backend-tests.sh
+        run: bash scripts/ci/backend-tests.sh
 
   postgres-migrations:
     name: Database / PostgreSQL migrations
@@ -147,7 +147,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install and run frontend gates
-        run: ./scripts/ci/frontend-checks.sh
+        run: bash scripts/ci/frontend-checks.sh
 
   ci-gate:
     name: CI Gate
