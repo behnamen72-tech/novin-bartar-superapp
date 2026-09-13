@@ -1,0 +1,93 @@
+name: Strict Mypy Remediation V2
+
+on:
+  push:
+    branches:
+      - ci/strict-mypy-remediation
+    paths:
+      - .github/workflows/strict-mypy-remediation-v2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  remediate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: Apply reviewed targeted remediation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import textwrap
+
+          workflow = Path('.github/workflows/strict-mypy-remediation.yml').read_text(encoding='utf-8')
+          start_marker = "          python - <<'PY'\n"
+          end_marker = "\n          PY\n"
+          start = workflow.index(start_marker) + len(start_marker)
+          end = workflow.index(end_marker, start)
+          script = textwrap.dedent(workflow[start:end])
+          exec(compile(script, '<strict-mypy-remediation>', 'exec'), {'__name__': '__main__'})
+
+          main_path = Path('backend/app/main.py')
+          main_text = main_path.read_text(encoding='utf-8')
+          old = (
+              'from app.db import session as _db_session  # noqa: F401\n'
+              'from app.api.v1.router import api_router\n'
+              'from app.core.config import settings'
+          )
+          new = (
+              'from app.api.v1.router import api_router\n'
+              'from app.core.config import settings\n'
+              'from app.db import session as _db_session  # noqa: F401'
+          )
+          if main_text.count(old) != 1:
+              raise SystemExit('backend/app/main.py: expected exact import block once')
+          main_path.write_text(main_text.replace(old, new, 1), encoding='utf-8')
+          PY
+
+      - name: Ruff format and lint
+        working-directory: backend
+        run: |
+          ruff format app tests
+          ruff check app tests
+
+      - name: Strict MyPy
+        working-directory: backend
+        run: mypy app
+
+      - name: Compile Python sources
+        working-directory: backend
+        run: python -m compileall -q app
+
+      - name: Run all backend tests in isolated processes
+        run: bash scripts/ci/backend-tests.sh
+
+      - name: Commit validated backend remediation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "No backend changes to commit."
+            exit 0
+          fi
+          git commit -m "ci: satisfy strict backend lint and typing gates"
+          git push origin HEAD:ci/strict-mypy-remediation
