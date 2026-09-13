@@ -1,0 +1,164 @@
+name: Apply Final Backend Lint Fixes
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/apply-final-lint-fixes.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply-verified-fixes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: Apply exact reviewed replacements
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          replacements = {
+              'backend/app/api/v1/routes/documents.py': [
+                  (
+                      '    document_status: DocumentStatus | None = Query(default=None, alias="status"),',
+                      '    document_status: Annotated[DocumentStatus | None, Query(alias="status")] = None,',
+                  ),
+                  (
+                      '    entity_type: DocumentLinkEntityType | None = Query(default=None),',
+                      '    entity_type: Annotated[DocumentLinkEntityType | None, Query()] = None,',
+                  ),
+                  (
+                      '    entity_id: UUID | None = Query(default=None),',
+                      '    entity_id: Annotated[UUID | None, Query()] = None,',
+                  ),
+              ],
+              'backend/app/api/v1/routes/workflow.py': [
+                  (
+                      '    instance_status: WorkflowInstanceStatus | None = Query(default=None, alias="status"),',
+                      '    instance_status: Annotated[WorkflowInstanceStatus | None, Query(alias="status")] = None,',
+                  ),
+              ],
+              'backend/app/core/access/admin_service.py': [
+                  (
+                      '                "Cannot reactivate access without an active person relationship at the assignment organization."',
+                      '                "Cannot reactivate access without an active person relationship "\n'
+                      '                "at the assignment organization."',
+                  ),
+              ],
+              'backend/app/core/config.py': [
+                  (
+                      '                "COMMERCE_INTEGRATION_JWT_SECRET must be a dedicated random secret of at least 32 characters."',
+                      '                "COMMERCE_INTEGRATION_JWT_SECRET must be a dedicated random secret "\n'
+                      '                "of at least 32 characters."',
+                  ),
+              ],
+              'backend/app/core/people/service.py': [
+                  (
+                      '                    "Deactivate access assignments rooted at this organization before deactivating the person\'s relationship."',
+                      '                    "Deactivate access assignments rooted at this organization before "\n'
+                      '                    "deactivating the person\'s relationship."',
+                  ),
+              ],
+              'backend/app/core/search/service.py': [
+                  (
+                      '                subtitle=f"{document.document_type} · {document.status.value if hasattr(document.status, \'value\') else document.status}",',
+                      '                subtitle=(\n'
+                      '                    f"{document.document_type} · "\n'
+                      '                    f"{document.status.value if hasattr(document.status, \'value\') else document.status}"\n'
+                      '                ),',
+                  ),
+              ],
+              'backend/app/modules/hr/permissions.py': [
+                  (
+                      '        "View HR job profiles, planned positions, and employment records within authorized organization scope.",',
+                      '        "View HR job profiles, planned positions, and employment records "\n'
+                      '        "within authorized organization scope.",',
+                  ),
+                  (
+                      '        "Create and manage HR job profiles, positions, and employment records within authorized organization scope.",',
+                      '        "Create and manage HR job profiles, positions, and employment records "\n'
+                      '        "within authorized organization scope.",',
+                  ),
+              ],
+              'backend/app/modules/hr/service.py': [
+                  (
+                      '            "Person must have an active relationship with the organization before an employment record can be created."',
+                      '            "Person must have an active relationship with the organization before "\n'
+                      '            "an employment record can be created."',
+                  ),
+              ],
+              'backend/tests/test_hr_api.py': [
+                  (
+                      'def test_employment_relationship_dates_support_future_planning_without_exposing_not_yet_active_people(',
+                      'def test_future_employment_relationship_dates_do_not_expose_inactive_people(',
+                  ),
+              ],
+              'backend/app/core/documents/service.py': [
+                  (
+                      '    except AuthorizationError:\n        assert original_error is not None\n        raise original_error\n',
+                      '    except AuthorizationError:\n        assert original_error is not None\n        raise original_error from None\n',
+                  ),
+              ],
+          }
+
+          for filename, pairs in replacements.items():
+              path = Path(filename)
+              text = path.read_text(encoding='utf-8')
+              for old, new in pairs:
+                  count = text.count(old)
+                  if count != 1:
+                      raise SystemExit(f'{filename}: expected exactly one occurrence, found {count}: {old!r}')
+                  text = text.replace(old, new, 1)
+              path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Format and validate diff
+        working-directory: backend
+        run: |
+          ruff format app tests
+          cd ..
+          git diff --check
+          git diff --stat
+
+      - name: Ruff must be clean
+        working-directory: backend
+        run: ruff check app tests
+
+      - name: Mypy must be clean
+        working-directory: backend
+        run: mypy app
+
+      - name: Compile Python sources
+        working-directory: backend
+        run: python -m compileall -q app tests
+
+      - name: Run all backend tests in isolated processes
+        run: bash scripts/ci/backend-tests.sh
+
+      - name: Commit only after every validation passes
+        run: |
+          test -n "$(git diff --name-only -- backend/app backend/tests)"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add backend/app backend/tests
+          git commit -m 'ci: resolve remaining backend lint findings'
+          git push origin HEAD:main
