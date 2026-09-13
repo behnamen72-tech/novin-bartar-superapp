@@ -1,5 +1,6 @@
 name: Diagnose CI Failures
 
+# Diagnostic refresh after Ruff formatting and AsyncState prop fix.
 on:
   push:
     branches:
