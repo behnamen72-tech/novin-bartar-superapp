@@ -1,0 +1,37 @@
+{
+  "name": "novin-bartar-superapp-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "check:b63": "node scripts/check-b63-navigation.cjs",
+    "check:b64": "node scripts/check-b64-dashboard.cjs",
+    "check:b65": "node scripts/check-b65-organizations.cjs",
+    "check:b66": "node scripts/check-b66-people-users.cjs",
+    "check:b67": "node scripts/check-b67-documents.cjs",
+    "check:b68": "node scripts/check-b68-access.cjs",
+    "check:c1": "node scripts/check-c1-workflow.cjs",
+    "check:c2": "node scripts/check-c2-notifications.cjs",
+    "check:c3": "node scripts/check-c3-search.cjs",
+    "check:d1": "node scripts/check-d1-hr.cjs",
+    "check:d2": "node scripts/check-d2-customers.cjs",
+    "check:d3": "node scripts/check-d3-suppliers.cjs"
+  },
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^15.0.0",
+    "typescript": "^5.0.0"
+  }
+}
