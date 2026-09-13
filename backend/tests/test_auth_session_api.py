@@ -2,14 +2,9 @@ from __future__ import annotations
 
 import hashlib
 from collections.abc import Iterator
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
-
 from app.core.audit.models import AuditEvent
 from app.core.identity.models import User, UserSession
 from app.core.identity.security import hash_password
@@ -18,6 +13,10 @@ from app.core.people.models import Person, PersonOrganizationRelationship
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 
 @pytest.fixture
@@ -200,7 +199,7 @@ def test_expired_refresh_token_is_rejected(
     with auth_session_db() as session:
         stored = session.scalar(select(UserSession))
         assert stored is not None
-        stored.expires_at = datetime.now(timezone.utc) - timedelta(seconds=1)
+        stored.expires_at = datetime.now(UTC) - timedelta(seconds=1)
         session.commit()
 
     response = session_client.post(

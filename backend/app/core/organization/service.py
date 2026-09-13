@@ -4,12 +4,12 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.core.access.permissions import ORGANIZATION_MANAGE, ORGANIZATION_READ
-from app.core.access.service import authorized_organization_ids
 from app.core.access.policy import (
     AuthorizationError,
     has_permission_including_inactive_target,
     require_permission_for_organization,
 )
+from app.core.access.service import authorized_organization_ids
 from app.core.audit.service import record_audit_event
 from app.core.identity.models import User
 from app.core.organization.models import Organization, OrganizationType

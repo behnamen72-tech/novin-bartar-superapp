@@ -32,7 +32,6 @@ from app.core.people.service import (
 )
 from app.db.session import get_db
 
-
 router = APIRouter(prefix="/people", tags=["people"])
 
 

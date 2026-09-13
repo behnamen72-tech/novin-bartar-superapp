@@ -1,6 +1,5 @@
 from app.core.organization.models import OrganizationType
 
-
 _ALLOWED_PARENTS: dict[OrganizationType, set[OrganizationType | None]] = {
     OrganizationType.HOLDING: {None},
     OrganizationType.COMPANY: {OrganizationType.HOLDING},

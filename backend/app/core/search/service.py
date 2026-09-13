@@ -9,7 +9,6 @@ from app.core.search.schemas import SearchEntityType, SearchResponse, SearchResu
 from app.modules.customers.service import search_customers_for_user
 from app.modules.suppliers.service import search_suppliers_for_user
 
-
 DEFAULT_TYPES: tuple[SearchEntityType, ...] = (
     SearchEntityType.ORGANIZATION,
     SearchEntityType.PERSON,

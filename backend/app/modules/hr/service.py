@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.core.access.models import OrganizationScopeMode
 from app.core.access.policy import (
-    AuthorizationError,
     has_permission,
     organization_is_in_scope,
     require_permission_for_organization,

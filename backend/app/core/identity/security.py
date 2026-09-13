@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
 import jwt
@@ -7,7 +7,6 @@ from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatc
 from jwt.exceptions import InvalidTokenError
 
 from app.core.config import settings
-
 
 _password_hasher = PasswordHasher()
 
@@ -49,7 +48,7 @@ def create_access_token(
     *,
     expires_delta: timedelta | None = None,
 ) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expire = now + (
         expires_delta
         if expires_delta is not None

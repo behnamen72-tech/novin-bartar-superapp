@@ -3,7 +3,8 @@ from __future__ import annotations
 from enum import Enum
 from uuid import UUID
 
-from sqlalchemy import Boolean, Enum as SAEnum, ForeignKey, Index, Integer, String, UniqueConstraint, text
+from sqlalchemy import Boolean, ForeignKey, Index, Integer, String, UniqueConstraint, text
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -75,19 +76,19 @@ class SupplierProfile(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
-    organization: Mapped["Organization"] = relationship("Organization")
-    assigned_owner: Mapped["User | None"] = relationship("User", foreign_keys=[assigned_owner_user_id])
-    created_by: Mapped["User"] = relationship("User", foreign_keys=[created_by_user_id])
-    representatives: Mapped[list["SupplierRepresentative"]] = relationship(
+    organization: Mapped[Organization] = relationship("Organization")
+    assigned_owner: Mapped[User | None] = relationship("User", foreign_keys=[assigned_owner_user_id])
+    created_by: Mapped[User] = relationship("User", foreign_keys=[created_by_user_id])
+    representatives: Mapped[list[SupplierRepresentative]] = relationship(
         "SupplierRepresentative", back_populates="supplier", cascade="all, delete-orphan"
     )
-    notes: Mapped[list["SupplierNote"]] = relationship(
+    notes: Mapped[list[SupplierNote]] = relationship(
         "SupplierNote", back_populates="supplier", cascade="all, delete-orphan"
     )
-    tag_links: Mapped[list["SupplierProfileTag"]] = relationship(
+    tag_links: Mapped[list[SupplierProfileTag]] = relationship(
         "SupplierProfileTag", back_populates="supplier", cascade="all, delete-orphan"
     )
-    external_references: Mapped[list["SupplierExternalReference"]] = relationship(
+    external_references: Mapped[list[SupplierExternalReference]] = relationship(
         "SupplierExternalReference", back_populates="supplier", cascade="all, delete-orphan"
     )
 
@@ -136,9 +137,9 @@ class SupplierTag(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True
     )
 
-    organization: Mapped["Organization"] = relationship("Organization")
-    created_by: Mapped["User"] = relationship("User")
-    supplier_links: Mapped[list["SupplierProfileTag"]] = relationship(
+    organization: Mapped[Organization] = relationship("Organization")
+    created_by: Mapped[User] = relationship("User")
+    supplier_links: Mapped[list[SupplierProfileTag]] = relationship(
         "SupplierProfileTag", back_populates="tag", cascade="all, delete-orphan"
     )
 
@@ -158,7 +159,7 @@ class SupplierProfileTag(TimestampMixin, Base):
 
     supplier: Mapped[SupplierProfile] = relationship("SupplierProfile", back_populates="tag_links")
     tag: Mapped[SupplierTag] = relationship("SupplierTag", back_populates="supplier_links")
-    created_by: Mapped["User"] = relationship("User")
+    created_by: Mapped[User] = relationship("User")
 
 
 class SupplierNote(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -175,7 +176,7 @@ class SupplierNote(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
     supplier: Mapped[SupplierProfile] = relationship("SupplierProfile", back_populates="notes")
-    author: Mapped["User"] = relationship("User")
+    author: Mapped[User] = relationship("User")
 
 
 class SupplierExternalReference(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -203,8 +204,8 @@ class SupplierExternalReference(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
 
     supplier: Mapped[SupplierProfile] = relationship("SupplierProfile", back_populates="external_references")
-    organization: Mapped["Organization"] = relationship("Organization")
-    created_by: Mapped["User"] = relationship("User")
+    organization: Mapped[Organization] = relationship("Organization")
+    created_by: Mapped[User] = relationship("User")
 
 
 from app.core.identity.models import User  # noqa: E402

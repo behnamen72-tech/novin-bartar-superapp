@@ -1,14 +1,9 @@
 from collections.abc import Iterator
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from uuid import UUID, uuid4
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, func, select
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
-
 from app.core.access.models import (
     OrganizationScopeMode,
     Permission,
@@ -25,7 +20,6 @@ from app.core.documents.models import (
     DocumentPermission,
     DocumentStatus,
     DocumentVersion,
-    RetentionPolicy,
     StorageObject,
 )
 from app.core.documents.storage.local import LocalStorageProvider
@@ -36,6 +30,10 @@ from app.core.people.models import Person, PersonOrganizationRelationship
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, func, select
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 
 @pytest.fixture
@@ -1361,7 +1359,7 @@ def test_b55_metadata_category_expiration_search_and_audit(
             "name": "Licenses",
         },
     ).json()
-    expires_at = (datetime.now(timezone.utc) + timedelta(days=20)).isoformat()
+    expires_at = (datetime.now(UTC) + timedelta(days=20)).isoformat()
 
     updated = client.patch(
         f"/api/v1/documents/{document['id']}/metadata",
@@ -1512,7 +1510,7 @@ def test_b55_expires_based_retention_requires_expiry_and_recalculates_on_change(
     )
     assert missing_expiry.status_code == 400
 
-    first_expiry = datetime.now(timezone.utc) + timedelta(days=10)
+    first_expiry = datetime.now(UTC) + timedelta(days=10)
     assigned = client.patch(
         f"/api/v1/documents/{document['id']}/metadata",
         headers=auth_headers(user),
@@ -1596,7 +1594,7 @@ def test_b55_expiring_list_respects_document_acl(
     assert client.patch(
         f"/api/v1/documents/{document['id']}/metadata",
         headers=auth_headers(owner),
-        json={"expires_at": (datetime.now(timezone.utc) + timedelta(days=5)).isoformat()},
+        json={"expires_at": (datetime.now(UTC) + timedelta(days=5)).isoformat()},
     ).status_code == 200
 
     visible_before_acl = client.get(
@@ -1633,13 +1631,13 @@ def test_b55_retention_due_list_is_scope_filtered(
     with documents_db() as session:
         owned = session.get(Document, UUID(document["id"]))
         assert owned is not None
-        owned.retention_review_at = datetime.now(timezone.utc) - timedelta(days=3)
+        owned.retention_review_at = datetime.now(UTC) - timedelta(days=3)
         hidden = Document(
             title="Other company due",
             document_type="contract",
             organization_id=company_b.id,
             created_by=user.id,
-            retention_review_at=datetime.now(timezone.utc) - timedelta(days=10),
+            retention_review_at=datetime.now(UTC) - timedelta(days=10),
         )
         session.add(hidden)
         session.commit()

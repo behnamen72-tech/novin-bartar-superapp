@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
@@ -33,7 +33,7 @@ def authenticate_user(
     if password_hash_needs_rehash(user.password_hash):
         user.password_hash = hash_password(plain_password)
 
-    user.last_login_at = datetime.now(timezone.utc)
+    user.last_login_at = datetime.now(UTC)
     # The auth route commits last_login, refresh-session creation, and its audit
     # event atomically. Do not commit here.
     session.flush()

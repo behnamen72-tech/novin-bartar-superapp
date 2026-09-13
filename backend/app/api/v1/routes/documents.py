@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from io import BytesIO
 from typing import Annotated
 from urllib.parse import quote
@@ -70,7 +70,6 @@ from app.core.identity.dependencies import get_current_user
 from app.core.identity.models import User
 from app.db.session import get_db
 
-
 router = APIRouter(prefix="/documents", tags=["documents"])
 
 
@@ -140,8 +139,8 @@ def _document_detail_response(document: Document) -> DocumentDetailResponse:
 
 def _aware_utc(value: datetime) -> datetime:
     if value.tzinfo is None or value.utcoffset() is None:
-        return value.replace(tzinfo=timezone.utc)
-    return value.astimezone(timezone.utc)
+        return value.replace(tzinfo=UTC)
+    return value.astimezone(UTC)
 
 
 def _calendar_days_between(later: datetime, earlier: datetime) -> int:
@@ -199,7 +198,7 @@ def read_expiring_documents(
     limit: Annotated[int, Query(ge=1, le=200)] = 100,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> list[DocumentExpirationResponse]:
-    current = datetime.now(timezone.utc)
+    current = datetime.now(UTC)
     try:
         documents = list_expiring_documents(
             session,
@@ -241,7 +240,7 @@ def read_retention_due_documents(
     limit: Annotated[int, Query(ge=1, le=200)] = 100,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> list[DocumentRetentionDueResponse]:
-    current = datetime.now(timezone.utc)
+    current = datetime.now(UTC)
     try:
         documents = list_retention_due_documents(
             session,

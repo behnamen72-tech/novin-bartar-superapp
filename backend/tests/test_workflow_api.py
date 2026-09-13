@@ -2,24 +2,31 @@ from collections.abc import Iterator
 from uuid import uuid4
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
-
-from app.core.access.models import OrganizationScopeMode, Permission, Role, RolePermission, UserRoleAssignment
+from app.core.access.models import (
+    OrganizationScopeMode,
+    Permission,
+    Role,
+    RolePermission,
+    UserRoleAssignment,
+)
 from app.core.access.permissions import WORKFLOW_EXECUTE, WORKFLOW_MANAGE, WORKFLOW_READ
 from app.core.audit.models import AuditEvent
 from app.core.identity.models import User
 from app.core.identity.security import create_access_token, hash_password
-from app.core.organization.models import Organization, OrganizationType
 from app.core.notifications.models import Notification
+from app.core.organization.models import Organization, OrganizationType
 from app.core.people.models import Person, PersonOrganizationRelationship
 from app.core.workflow.events import WorkflowHistoryIntegrityError
-from app.core.workflow.models import WorkflowInstance, WorkflowInstanceStatus, WorkflowTransitionRecord
+from app.core.workflow.models import (
+    WorkflowTransitionRecord,
+)
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 
 @pytest.fixture

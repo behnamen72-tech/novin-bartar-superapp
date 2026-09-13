@@ -3,7 +3,8 @@ from __future__ import annotations
 from enum import Enum
 from uuid import UUID
 
-from sqlalchemy import Boolean, Enum as SAEnum, ForeignKey, Index, Integer, String, UniqueConstraint
+from sqlalchemy import Boolean, ForeignKey, Index, Integer, String, UniqueConstraint
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -89,15 +90,15 @@ class CustomerCRMRecord(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
-    organization: Mapped["Organization"] = relationship("Organization")
-    assigned_owner: Mapped["User | None"] = relationship(
+    organization: Mapped[Organization] = relationship("Organization")
+    assigned_owner: Mapped[User | None] = relationship(
         "User", foreign_keys=[assigned_owner_user_id]
     )
-    created_by: Mapped["User"] = relationship("User", foreign_keys=[created_by_user_id])
-    notes: Mapped[list["CustomerNote"]] = relationship(
+    created_by: Mapped[User] = relationship("User", foreign_keys=[created_by_user_id])
+    notes: Mapped[list[CustomerNote]] = relationship(
         "CustomerNote", back_populates="customer", cascade="all, delete-orphan"
     )
-    tag_links: Mapped[list["CustomerCRMTag"]] = relationship(
+    tag_links: Mapped[list[CustomerCRMTag]] = relationship(
         "CustomerCRMTag", back_populates="customer", cascade="all, delete-orphan"
     )
 
@@ -121,9 +122,9 @@ class CustomerTag(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True
     )
 
-    organization: Mapped["Organization"] = relationship("Organization")
-    created_by: Mapped["User"] = relationship("User")
-    customer_links: Mapped[list["CustomerCRMTag"]] = relationship(
+    organization: Mapped[Organization] = relationship("Organization")
+    created_by: Mapped[User] = relationship("User")
+    customer_links: Mapped[list[CustomerCRMTag]] = relationship(
         "CustomerCRMTag", back_populates="tag", cascade="all, delete-orphan"
     )
 
@@ -145,7 +146,7 @@ class CustomerCRMTag(TimestampMixin, Base):
         "CustomerCRMRecord", back_populates="tag_links"
     )
     tag: Mapped[CustomerTag] = relationship("CustomerTag", back_populates="customer_links")
-    created_by: Mapped["User"] = relationship("User")
+    created_by: Mapped[User] = relationship("User")
 
 
 class CustomerNote(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -166,7 +167,7 @@ class CustomerNote(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     customer: Mapped[CustomerCRMRecord] = relationship(
         "CustomerCRMRecord", back_populates="notes"
     )
-    author: Mapped["User"] = relationship("User")
+    author: Mapped[User] = relationship("User")
 
 
 from app.core.identity.models import User  # noqa: E402

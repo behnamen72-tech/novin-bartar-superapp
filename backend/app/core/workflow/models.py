@@ -8,13 +8,15 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     DateTime,
-    Enum as SAEnum,
     ForeignKey,
     Index,
     Integer,
     String,
     Text,
     UniqueConstraint,
+)
+from sqlalchemy import (
+    Enum as SAEnum,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -64,14 +66,14 @@ class WorkflowDefinition(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         index=True,
     )
 
-    organization: Mapped["Organization"] = relationship("Organization")
-    states: Mapped[list["WorkflowState"]] = relationship(
+    organization: Mapped[Organization] = relationship("Organization")
+    states: Mapped[list[WorkflowState]] = relationship(
         "WorkflowState", back_populates="definition", cascade="all, delete-orphan"
     )
-    transitions: Mapped[list["WorkflowTransition"]] = relationship(
+    transitions: Mapped[list[WorkflowTransition]] = relationship(
         "WorkflowTransition", back_populates="definition", cascade="all, delete-orphan"
     )
-    instances: Mapped[list["WorkflowInstance"]] = relationship(
+    instances: Mapped[list[WorkflowInstance]] = relationship(
         "WorkflowInstance", back_populates="definition"
     )
 
@@ -156,10 +158,10 @@ class WorkflowInstance(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     definition: Mapped[WorkflowDefinition] = relationship("WorkflowDefinition", back_populates="instances")
-    organization: Mapped["Organization"] = relationship("Organization")
+    organization: Mapped[Organization] = relationship("Organization")
     current_state: Mapped[WorkflowState] = relationship("WorkflowState")
-    started_by: Mapped["User"] = relationship("User")
-    history: Mapped[list["WorkflowTransitionRecord"]] = relationship(
+    started_by: Mapped[User] = relationship("User")
+    history: Mapped[list[WorkflowTransitionRecord]] = relationship(
         "WorkflowTransitionRecord",
         back_populates="instance",
         order_by="WorkflowTransitionRecord.occurred_at",
@@ -194,7 +196,7 @@ class WorkflowTransitionRecord(UUIDPrimaryKeyMixin, Base):
     transition: Mapped[WorkflowTransition] = relationship("WorkflowTransition")
     from_state: Mapped[WorkflowState] = relationship("WorkflowState", foreign_keys=[from_state_id])
     to_state: Mapped[WorkflowState] = relationship("WorkflowState", foreign_keys=[to_state_id])
-    actor: Mapped["User"] = relationship("User")
+    actor: Mapped[User] = relationship("User")
 
 
 from app.core.identity.models import User  # noqa: E402

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -24,7 +24,6 @@ from app.core.access.models import (
 )
 from app.core.access.permissions import ACCESS_MANAGE, ACCESS_READ
 from app.core.access.policy import (
-    AuthorizationError,
     assignment_is_effective_for_organization,
     has_permission,
     require_permission_for_organization,
@@ -117,7 +116,7 @@ def _assignment_is_current_at_root(
         session,
         assignment=assignment,
         target_organization_id=assignment.organization_id,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
     )
 
 

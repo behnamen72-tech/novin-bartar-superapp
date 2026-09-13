@@ -1,12 +1,11 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from app.core.access.models import OrganizationScopeMode, Role, UserRoleAssignment
+from app.core.access.models import OrganizationScopeMode, Role, RolePermission, UserRoleAssignment
 from app.core.organization.models import Organization
-from app.core.access.models import RolePermission
 
 
 class AuthorizationError(PermissionError):
@@ -97,7 +96,7 @@ def assignment_is_effective_for_organization(
     if target_org is None or not target_org.is_active:
         return False
 
-    effective_now = now or datetime.now(timezone.utc)
+    effective_now = now or datetime.now(UTC)
     if not _is_assignment_current(assignment, effective_now):
         return False
 
@@ -126,7 +125,7 @@ def has_permission(
         )
     )
     assignments = list(session.scalars(statement).all())
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     for assignment in assignments:
         if not assignment_is_effective_for_organization(
@@ -171,7 +170,7 @@ def has_permission_including_inactive_target(
             selectinload(UserRoleAssignment.organization),
         )
     )
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     for assignment in session.scalars(statement).all():
         if not _is_assignment_current(assignment, now):
             continue

@@ -1,10 +1,8 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import httpx
 import jwt
 import pytest
-from pydantic import SecretStr
-
 from app.core.config import settings
 from app.modules.customers.integration import (
     CommerceIntegrationUnavailableError,
@@ -12,6 +10,7 @@ from app.modules.customers.integration import (
     _retry_delay_seconds,
     create_commerce_service_token,
 )
+from pydantic import SecretStr
 
 
 def test_commerce_service_token_has_dedicated_short_lived_identity(
@@ -37,7 +36,7 @@ def test_commerce_service_token_has_dedicated_short_lived_identity(
     assert claims["scope"] == "customer.reference.validate"
     assert claims["jti"]
     assert 0 < claims["exp"] - claims["iat"] <= 120
-    assert claims["iat"] <= int(datetime.now(timezone.utc).timestamp())
+    assert claims["iat"] <= int(datetime.now(UTC).timestamp())
 
 
 def test_commerce_base_url_requires_https_outside_local_development(

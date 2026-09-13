@@ -1,12 +1,11 @@
 import pytest
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session
-
 from app.core.identity.models import User
 from app.core.identity.security import hash_password
 from app.core.organization.models import Organization, OrganizationType
 from app.core.people.models import Person, PersonOrganizationRelationship
 from app.db.base import Base
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session
 
 
 def build_engine():

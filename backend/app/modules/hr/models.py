@@ -8,11 +8,13 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     Date,
-    Enum as SAEnum,
     ForeignKey,
     Index,
     String,
     UniqueConstraint,
+)
+from sqlalchemy import (
+    Enum as SAEnum,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -67,8 +69,8 @@ class HRJobProfile(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
-    organization: Mapped["Organization"] = relationship("Organization")
-    positions: Mapped[list["HRPosition"]] = relationship(
+    organization: Mapped[Organization] = relationship("Organization")
+    positions: Mapped[list[HRPosition]] = relationship(
         "HRPosition",
         back_populates="job_profile",
     )
@@ -119,17 +121,17 @@ class HRPosition(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
-    organization: Mapped["Organization"] = relationship("Organization")
+    organization: Mapped[Organization] = relationship("Organization")
     job_profile: Mapped[HRJobProfile] = relationship(
         "HRJobProfile",
         back_populates="positions",
     )
-    reports_to: Mapped["HRPosition | None"] = relationship(
+    reports_to: Mapped[HRPosition | None] = relationship(
         "HRPosition",
         remote_side="HRPosition.id",
         foreign_keys=[reports_to_position_id],
     )
-    employments: Mapped[list["HREmployment"]] = relationship(
+    employments: Mapped[list[HREmployment]] = relationship(
         "HREmployment",
         back_populates="position",
     )
@@ -188,8 +190,8 @@ class HREmployment(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
-    organization: Mapped["Organization"] = relationship("Organization")
-    person: Mapped["Person"] = relationship("Person")
+    organization: Mapped[Organization] = relationship("Organization")
+    person: Mapped[Person] = relationship("Person")
     position: Mapped[HRPosition | None] = relationship(
         "HRPosition",
         back_populates="employments",

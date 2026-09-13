@@ -2,14 +2,20 @@ from collections.abc import Iterator
 from uuid import uuid4
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
-
-from app.core.access.models import OrganizationScopeMode, Permission, Role, RolePermission, UserRoleAssignment
+from app.core.access.models import (
+    OrganizationScopeMode,
+    Permission,
+    Role,
+    RolePermission,
+    UserRoleAssignment,
+)
 from app.core.access.permissions import DOCUMENTS_READ, ORGANIZATION_READ, PEOPLE_READ
-from app.core.documents.models import Document, DocumentPermission, DocumentPermissionType, DocumentStatus
+from app.core.documents.models import (
+    Document,
+    DocumentPermission,
+    DocumentPermissionType,
+    DocumentStatus,
+)
 from app.core.identity.models import User
 from app.core.identity.security import create_access_token, hash_password
 from app.core.organization.models import Organization, OrganizationType
@@ -17,6 +23,10 @@ from app.core.people.models import Person, PersonOrganizationRelationship
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 
 @pytest.fixture

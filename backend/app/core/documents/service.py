@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 from uuid import UUID, uuid4
 
@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy.sql.elements import ColumnElement
 
+from app.core.access.models import Role, RolePermission
 from app.core.access.permissions import (
     ACCESS_MANAGE,
     AUDIT_READ,
@@ -25,7 +26,6 @@ from app.core.access.service import (
     effective_role_ids_for_permission,
     role_has_effective_assignment_for_organization,
 )
-from app.core.access.models import Role, RolePermission
 from app.core.audit.models import AuditEvent
 from app.core.audit.service import record_audit_event
 from app.core.documents.models import (
@@ -1997,7 +1997,7 @@ def list_expiring_documents(
     )
     if not allowed:
         return []
-    current = now or datetime.now(timezone.utc)
+    current = now or datetime.now(UTC)
     cutoff = current + timedelta(days=within_days)
     statement = select(Document).where(
         _document_acl_list_condition(
@@ -2036,7 +2036,7 @@ def list_retention_due_documents(
     )
     if not allowed:
         return []
-    current = now or datetime.now(timezone.utc)
+    current = now or datetime.now(UTC)
     statement = (
         select(Document)
         .where(

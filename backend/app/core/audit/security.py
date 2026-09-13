@@ -5,7 +5,6 @@ from uuid import UUID
 
 from pydantic import SecretStr
 
-
 _REDACTED = "[REDACTED]"
 _SENSITIVE_KEY_FRAGMENTS = (
     "password",

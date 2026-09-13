@@ -1,16 +1,25 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-
-from app.core.access.models import OrganizationScopeMode, Permission, Role, RolePermission, UserRoleAssignment
-from app.core.access.policy import has_permission, require_permission_for_organization, AuthorizationError
+from app.core.access.models import (
+    OrganizationScopeMode,
+    Permission,
+    Role,
+    RolePermission,
+    UserRoleAssignment,
+)
+from app.core.access.policy import (
+    AuthorizationError,
+    has_permission,
+    require_permission_for_organization,
+)
 from app.core.identity.models import User
 from app.core.identity.security import hash_password
 from app.core.organization.models import Organization, OrganizationType
 from app.core.people.models import Person
 from app.db.base import Base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 
 def make_graph(session: Session):
@@ -63,7 +72,7 @@ def test_inactive_role_or_expired_assignment_denies() -> None:
     Base.metadata.create_all(engine)
     with Session(engine) as session:
         _, company_a, _, _, user, role = make_graph(session)
-        assignment = UserRoleAssignment(user=user, role=role, organization=company_a, scope_mode=OrganizationScopeMode.SELF, ends_at=datetime.now(timezone.utc) - timedelta(minutes=1))
+        assignment = UserRoleAssignment(user=user, role=role, organization=company_a, scope_mode=OrganizationScopeMode.SELF, ends_at=datetime.now(UTC) - timedelta(minutes=1))
         session.add(assignment)
         session.flush()
         assert has_permission(session, user_id=user.id, permission_code="people.read", organization_id=company_a.id) is False

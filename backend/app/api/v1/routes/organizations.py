@@ -29,7 +29,6 @@ from app.core.organization.service import (
 )
 from app.db.session import get_db
 
-
 router = APIRouter(prefix="/organizations", tags=["organizations"])
 
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from time import sleep
 from urllib.parse import quote
 from uuid import UUID, uuid4
@@ -29,7 +29,7 @@ def create_commerce_service_token(*, scope: str) -> str:
         raise CommerceIntegrationUnavailableError(
             "Commerce integration service credentials are not configured."
         )
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expires = now + timedelta(seconds=settings.commerce_integration_token_ttl_seconds)
     payload = {
         "sub": settings.commerce_integration_service_subject,

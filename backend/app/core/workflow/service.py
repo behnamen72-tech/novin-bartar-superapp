@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.core.access.models import OrganizationScopeMode
 from app.core.access.permissions import WORKFLOW_EXECUTE, WORKFLOW_MANAGE, WORKFLOW_READ
 from app.core.access.policy import (
-    AuthorizationError,
     has_permission,
     organization_is_in_scope,
     require_permission_for_organization,
@@ -738,7 +736,7 @@ def start_instance(
     )
     if duplicate is not None:
         raise WorkflowConflictError("This resource already has an instance for this workflow version.")
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     initial_state = initial[0]
     instance = WorkflowInstance(
         definition=definition,
@@ -851,7 +849,7 @@ def transition_instance(
     if to_state is None:
         raise WorkflowConflictError("Workflow transition target state is missing.")
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     before = {"current_state_id": str(instance.current_state_id), "status": instance.status.value}
     record = WorkflowTransitionRecord(
         instance=instance,
@@ -917,7 +915,7 @@ def cancel_instance(session: Session, *, actor: User, instance_id: UUID) -> Work
         raise WorkflowConflictError("Completed workflow instances cannot be cancelled.")
     before = {"status": instance.status.value}
     instance.status = WorkflowInstanceStatus.CANCELLED
-    instance.cancelled_at = datetime.now(timezone.utc)
+    instance.cancelled_at = datetime.now(UTC)
     record_audit_event(
         session,
         actor=actor,

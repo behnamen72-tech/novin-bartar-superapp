@@ -3,12 +3,13 @@ from datetime import date, timedelta
 from uuid import uuid4
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
-
-from app.core.access.models import OrganizationScopeMode, Permission, Role, RolePermission, UserRoleAssignment
+from app.core.access.models import (
+    OrganizationScopeMode,
+    Permission,
+    Role,
+    RolePermission,
+    UserRoleAssignment,
+)
 from app.core.audit.models import AuditEvent
 from app.core.identity.models import User
 from app.core.identity.security import create_access_token, hash_password
@@ -17,8 +18,12 @@ from app.core.people.models import Person, PersonOrganizationRelationship
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
-from app.modules.hr.models import HREmployment, HRJobProfile, HRPosition
+from app.modules.hr.models import HREmployment
 from app.modules.hr.permissions import HR_MANAGE, HR_READ
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 
 @pytest.fixture

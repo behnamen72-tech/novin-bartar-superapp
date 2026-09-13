@@ -44,7 +44,6 @@ from app.modules.hr.service import (
     update_position,
 )
 
-
 router = APIRouter(prefix="/hr", tags=["hr"])
 
 

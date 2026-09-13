@@ -3,7 +3,8 @@ from __future__ import annotations
 from enum import Enum
 from uuid import UUID
 
-from sqlalchemy import Boolean, CheckConstraint, Enum as SAEnum, ForeignKey, String
+from sqlalchemy import Boolean, CheckConstraint, ForeignKey, String
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base

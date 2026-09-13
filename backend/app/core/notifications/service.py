@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import func, select, update
@@ -197,7 +197,7 @@ def mark_notification_read(
         lock=True,
     )
     if notification.read_at is None:
-        notification.read_at = datetime.now(timezone.utc)
+        notification.read_at = datetime.now(UTC)
         session.commit()
     return notification
 
@@ -221,7 +221,7 @@ def mark_notification_unread(
 
 
 def mark_all_notifications_read(session: Session, *, user_id: UUID) -> int:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     result = session.execute(
         update(Notification)
         .where(

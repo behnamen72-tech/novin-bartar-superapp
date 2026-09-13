@@ -2,12 +2,13 @@ from collections.abc import Iterator
 from uuid import UUID, uuid4
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
-
-from app.core.access.models import OrganizationScopeMode, Permission, Role, RolePermission, UserRoleAssignment
+from app.core.access.models import (
+    OrganizationScopeMode,
+    Permission,
+    Role,
+    RolePermission,
+    UserRoleAssignment,
+)
 from app.core.audit.models import AuditEvent
 from app.core.identity.models import User
 from app.core.identity.security import create_access_token, hash_password
@@ -27,7 +28,10 @@ from app.modules.customers.permissions import (
     CRM_CUSTOMER_TAGS_MANAGE,
 )
 from app.modules.customers.schemas import CommerceCustomerValidationResult
-
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 ALL_CRM_PERMISSIONS = (
     CRM_CUSTOMER_READ,

@@ -60,7 +60,6 @@ from app.modules.suppliers.service import (
     update_supplier,
 )
 
-
 router = APIRouter(prefix="/suppliers", tags=["suppliers"])
 
 

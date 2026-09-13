@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -32,7 +32,7 @@ def list_effective_assignments(
         )
     )
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     result: list[MyAccessAssignmentResponse] = []
 
     for assignment in session.scalars(statement).all():
@@ -162,7 +162,7 @@ def effective_role_ids_for_permission(
             selectinload(UserRoleAssignment.organization),
         )
     )
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     role_ids: set[UUID] = set()
 
     for assignment in session.scalars(statement).all():
@@ -198,7 +198,7 @@ def role_has_effective_assignment_for_organization(
             selectinload(UserRoleAssignment.user).selectinload(User.person),
         )
     )
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return any(
         assignment.user.is_active
         and assignment.user.person.is_active
@@ -229,7 +229,7 @@ def effective_permission_codes_for_user(
             selectinload(UserRoleAssignment.organization),
         )
     )
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     result: set[str] = set()
     for assignment in session.scalars(statement).all():
         if not assignment_is_effective_for_organization(
@@ -325,7 +325,7 @@ def assert_actor_dominates_user_access(
         )
     )
     assignments = list(session.scalars(statement).all())
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     for assignment in assignments:
         if not assignment_is_effective_for_organization(
             session,

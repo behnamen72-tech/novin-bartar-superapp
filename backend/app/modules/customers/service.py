@@ -6,7 +6,11 @@ from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
-from app.core.access.policy import AuthorizationError, has_permission, require_permission_for_organization
+from app.core.access.policy import (
+    AuthorizationError,
+    has_permission,
+    require_permission_for_organization,
+)
 from app.core.access.service import authorized_organization_ids
 from app.core.audit.service import record_audit_event
 from app.core.identity.models import User

@@ -9,7 +9,6 @@ from app.core.search.schemas import SearchEntityType, SearchResponse
 from app.core.search.service import DEFAULT_TYPES, search_core
 from app.db.session import get_db
 
-
 router = APIRouter(prefix="/search", tags=["search"])
 
 

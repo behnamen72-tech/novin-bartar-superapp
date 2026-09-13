@@ -24,7 +24,6 @@ from app.core.identity.dependencies import get_current_user
 from app.core.identity.models import User
 from app.db.session import get_db
 
-
 router = APIRouter(prefix="/document-categories", tags=["document-categories"])
 
 

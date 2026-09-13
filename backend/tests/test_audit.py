@@ -2,11 +2,6 @@ from collections.abc import Iterator
 from uuid import uuid4
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
-
 from app.core.access.models import (
     OrganizationScopeMode,
     Permission,
@@ -24,6 +19,10 @@ from app.core.people.models import Person, PersonOrganizationRelationship
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 
 @pytest.fixture

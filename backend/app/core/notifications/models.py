@@ -4,7 +4,8 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
-from sqlalchemy import DateTime, Enum as SAEnum, ForeignKey, Index, String, Text, UniqueConstraint, func
+from sqlalchemy import DateTime, ForeignKey, Index, String, Text, UniqueConstraint, func
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -80,8 +81,8 @@ class Notification(UUIDPrimaryKeyMixin, Base):
         index=True,
     )
 
-    recipient: Mapped["User"] = relationship("User")
-    organization: Mapped["Organization | None"] = relationship("Organization")
+    recipient: Mapped[User] = relationship("User")
+    organization: Mapped[Organization | None] = relationship("Organization")
 
 
 from app.core.identity.models import User  # noqa: E402

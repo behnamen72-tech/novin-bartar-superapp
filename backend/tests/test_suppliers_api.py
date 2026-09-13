@@ -2,12 +2,13 @@ from collections.abc import Iterator
 from uuid import UUID, uuid4
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
-
-from app.core.access.models import OrganizationScopeMode, Permission, Role, RolePermission, UserRoleAssignment
+from app.core.access.models import (
+    OrganizationScopeMode,
+    Permission,
+    Role,
+    RolePermission,
+    UserRoleAssignment,
+)
 from app.core.audit.models import AuditEvent
 from app.core.identity.models import User
 from app.core.identity.security import create_access_token, hash_password
@@ -31,7 +32,10 @@ from app.modules.suppliers.permissions import (
     SUPPLIER_TAGS_ASSIGN,
     SUPPLIER_TAGS_CATALOG_MANAGE,
 )
-
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 ALL_SUPPLIER_PERMISSIONS = (
     SUPPLIER_READ,

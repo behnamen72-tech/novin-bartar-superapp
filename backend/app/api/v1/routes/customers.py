@@ -10,9 +10,9 @@ from app.core.identity.dependencies import get_current_user
 from app.core.identity.models import User
 from app.db.session import get_db
 from app.modules.customers.schemas import (
-    CRMOrganizationCapabilityResponse,
-    CRMAssigneeOptionResponse,
     CommerceActivityProjection,
+    CRMAssigneeOptionResponse,
+    CRMOrganizationCapabilityResponse,
     CustomerAssignmentRequest,
     CustomerCRMCreateRequest,
     CustomerCRMResponse,
@@ -49,7 +49,6 @@ from app.modules.customers.service import (
     update_customer,
     update_note,
 )
-
 
 router = APIRouter(prefix="/crm", tags=["crm"])
 

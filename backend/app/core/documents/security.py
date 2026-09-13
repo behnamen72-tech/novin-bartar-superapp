@@ -1,7 +1,6 @@
 import mimetypes
 from pathlib import PurePosixPath
 
-
 ALLOWED_DOCUMENT_EXTENSIONS: frozenset[str] = frozenset(
     {".pdf", ".docx", ".xlsx", ".png", ".jpg", ".jpeg"}
 )

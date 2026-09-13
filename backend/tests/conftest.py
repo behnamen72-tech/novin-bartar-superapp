@@ -1,6 +1,5 @@
 import os
 
-
 # Settings are created during application import, so test environment values
 # must exist before test modules import the app.
 os.environ.setdefault(

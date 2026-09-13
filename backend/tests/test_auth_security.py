@@ -2,7 +2,6 @@ from datetime import timedelta
 from uuid import uuid4
 
 import jwt
-
 from app.core.config import settings
 from app.core.identity.security import (
     TokenValidationError,
@@ -61,9 +60,8 @@ def test_token_payload_does_not_contain_password_data() -> None:
 
 
 def test_example_jwt_secret_is_rejected() -> None:
-    from pydantic import ValidationError
-
     from app.core.config import Settings
+    from pydantic import ValidationError
 
     try:
         Settings(
