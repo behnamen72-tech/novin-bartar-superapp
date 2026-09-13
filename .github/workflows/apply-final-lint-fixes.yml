@@ -139,9 +139,27 @@ jobs:
           git diff --check
           git diff --stat
 
-      - name: Ruff must be clean
+      - name: Capture Ruff result
         working-directory: backend
-        run: ruff check app tests
+        run: ruff check app tests --output-format=json > ../ruff-remaining.json || true
+
+      - name: Upload Ruff result
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruff-remaining
+          path: ruff-remaining.json
+          if-no-files-found: error
+
+      - name: Require Ruff clean
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          findings = json.loads(Path('ruff-remaining.json').read_text(encoding='utf-8'))
+          print(f'ruff_findings={len(findings)}')
+          if findings:
+              raise SystemExit(1)
+          PY
 
       - name: Mypy must be clean
         working-directory: backend
