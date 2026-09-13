@@ -12,9 +12,7 @@ _password_hasher = PasswordHasher()
 
 # Used only to consume approximately the same password-hash work when a login
 # identifier does not exist. This reduces simple username-enumeration timing leaks.
-_DUMMY_PASSWORD_HASH = _password_hasher.hash(
-    "novin-bartar-superapp-dummy-password-not-a-real-user"
-)
+_DUMMY_PASSWORD_HASH = _password_hasher.hash("novin-bartar-superapp-dummy-password-not-a-real-user")
 
 
 class TokenValidationError(ValueError):

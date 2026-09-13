@@ -58,7 +58,6 @@ def test_token_payload_does_not_contain_password_data() -> None:
     assert "password_hash" not in payload
 
 
-
 def test_example_jwt_secret_is_rejected() -> None:
     from app.core.config import Settings
     from pydantic import ValidationError

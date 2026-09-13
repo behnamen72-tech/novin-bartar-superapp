@@ -23,7 +23,11 @@ from sqlalchemy.pool import StaticPool
 
 @pytest.fixture
 def access_db() -> Iterator[sessionmaker[Session]]:
-    engine = create_engine("sqlite+pysqlite:///:memory:", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    engine = create_engine(
+        "sqlite+pysqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
     Base.metadata.create_all(engine)
     factory = sessionmaker(bind=engine, expire_on_commit=False)
     try:
@@ -41,6 +45,7 @@ def client(access_db: sessionmaker[Session]) -> Iterator[TestClient]:
             yield db
         finally:
             db.close()
+
     app.dependency_overrides[get_db] = override_get_db
     try:
         with TestClient(app) as c:
@@ -51,15 +56,28 @@ def client(access_db: sessionmaker[Session]) -> Iterator[TestClient]:
 
 def seed(access_db: sessionmaker[Session]):
     with access_db() as session:
-        holding = Organization(name="Holding", code="H-API", organization_type=OrganizationType.HOLDING)
-        company_a = Organization(name="A", code="A-API", organization_type=OrganizationType.COMPANY, parent=holding)
-        company_b = Organization(name="B", code="B-API", organization_type=OrganizationType.COMPANY, parent=holding)
+        holding = Organization(
+            name="Holding", code="H-API", organization_type=OrganizationType.HOLDING
+        )
+        company_a = Organization(
+            name="A", code="A-API", organization_type=OrganizationType.COMPANY, parent=holding
+        )
+        company_b = Organization(
+            name="B", code="B-API", organization_type=OrganizationType.COMPANY, parent=holding
+        )
         person = Person(first_name="A", last_name="User", email="a@x.test")
-        user = User(person=person, email="a@x.test", username="auser", password_hash=hash_password("Strong-password-123!"))
+        user = User(
+            person=person,
+            email="a@x.test",
+            username="auser",
+            password_hash=hash_password("Strong-password-123!"),
+        )
         permission = Permission(code="people.read", name="Read people")
         role = Role(code="reader", name="Reader")
         role.permission_links.append(RolePermission(permission=permission))
-        assignment = UserRoleAssignment(user=user, role=role, organization=company_a, scope_mode=OrganizationScopeMode.SELF)
+        assignment = UserRoleAssignment(
+            user=user, role=role, organization=company_a, scope_mode=OrganizationScopeMode.SELF
+        )
         session.add_all([holding, company_a, company_b, person, user, permission, role, assignment])
         session.commit()
         return user.id, company_a.id, company_b.id
@@ -70,13 +88,19 @@ def test_access_endpoints_require_authentication(client: TestClient) -> None:
     assert response.status_code == 401
 
 
-def test_permission_check_is_scoped_to_organization(client: TestClient, access_db: sessionmaker[Session]) -> None:
+def test_permission_check_is_scoped_to_organization(
+    client: TestClient, access_db: sessionmaker[Session]
+) -> None:
     user_id, company_a_id, company_b_id = seed(access_db)
     token = create_access_token(user_id)
     headers = {"Authorization": f"Bearer {token}"}
 
-    allowed = client.get(f"/api/v1/access/organizations/{company_a_id}/permissions/people.read", headers=headers)
-    denied = client.get(f"/api/v1/access/organizations/{company_b_id}/permissions/people.read", headers=headers)
+    allowed = client.get(
+        f"/api/v1/access/organizations/{company_a_id}/permissions/people.read", headers=headers
+    )
+    denied = client.get(
+        f"/api/v1/access/organizations/{company_b_id}/permissions/people.read", headers=headers
+    )
 
     assert allowed.status_code == 200
     assert allowed.json()["allowed"] is True
@@ -84,7 +108,9 @@ def test_permission_check_is_scoped_to_organization(client: TestClient, access_d
     assert denied.json()["allowed"] is False
 
 
-def test_my_access_does_not_expose_other_users(client: TestClient, access_db: sessionmaker[Session]) -> None:
+def test_my_access_does_not_expose_other_users(
+    client: TestClient, access_db: sessionmaker[Session]
+) -> None:
     user_id, company_a_id, _ = seed(access_db)
     token = create_access_token(user_id)
     response = client.get("/api/v1/access/me", headers={"Authorization": f"Bearer {token}"})

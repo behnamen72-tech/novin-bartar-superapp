@@ -88,7 +88,9 @@ def _representative_response(
     actor_id: UUID,
     representative,
 ) -> SupplierRepresentativeResponse:
-    supplier = get_supplier_for_user(session, user_id=actor_id, supplier_id=representative.supplier_id)
+    supplier = get_supplier_for_user(
+        session, user_id=actor_id, supplier_id=representative.supplier_id
+    )
     can_read_contact = has_permission(
         session,
         user_id=actor_id,
@@ -159,7 +161,14 @@ def create_supplier_endpoint(
 ) -> SupplierResponse:
     try:
         return _supplier_response(create_supplier(session, actor=current_user, payload=payload))
-    except (AuthorizationError, SupplierNotFoundError, SupplierConflictError, SupplierValidationError, IntegrityError, ValueError) as exc:
+    except (
+        AuthorizationError,
+        SupplierNotFoundError,
+        SupplierConflictError,
+        SupplierValidationError,
+        IntegrityError,
+        ValueError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
@@ -189,7 +198,14 @@ def update_supplier_endpoint(
         return _supplier_response(
             update_supplier(session, actor=current_user, supplier_id=supplier_id, payload=payload)
         )
-    except (AuthorizationError, SupplierNotFoundError, SupplierConflictError, SupplierValidationError, IntegrityError, ValueError) as exc:
+    except (
+        AuthorizationError,
+        SupplierNotFoundError,
+        SupplierConflictError,
+        SupplierValidationError,
+        IntegrityError,
+        ValueError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
@@ -203,9 +219,18 @@ def change_supplier_status_endpoint(
 ) -> SupplierResponse:
     try:
         return _supplier_response(
-            change_supplier_status(session, actor=current_user, supplier_id=supplier_id, payload=payload)
+            change_supplier_status(
+                session, actor=current_user, supplier_id=supplier_id, payload=payload
+            )
         )
-    except (AuthorizationError, SupplierNotFoundError, SupplierConflictError, SupplierValidationError, IntegrityError, ValueError) as exc:
+    except (
+        AuthorizationError,
+        SupplierNotFoundError,
+        SupplierConflictError,
+        SupplierValidationError,
+        IntegrityError,
+        ValueError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
@@ -219,9 +244,18 @@ def assign_supplier_endpoint(
 ) -> SupplierResponse:
     try:
         return _supplier_response(
-            assign_supplier_owner(session, actor=current_user, supplier_id=supplier_id, payload=payload)
+            assign_supplier_owner(
+                session, actor=current_user, supplier_id=supplier_id, payload=payload
+            )
         )
-    except (AuthorizationError, SupplierNotFoundError, SupplierConflictError, SupplierValidationError, IntegrityError, ValueError) as exc:
+    except (
+        AuthorizationError,
+        SupplierNotFoundError,
+        SupplierConflictError,
+        SupplierValidationError,
+        IntegrityError,
+        ValueError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
@@ -235,9 +269,18 @@ def unassign_supplier_endpoint(
 ) -> SupplierResponse:
     try:
         return _supplier_response(
-            unassign_supplier_owner(session, actor=current_user, supplier_id=supplier_id, payload=payload)
+            unassign_supplier_owner(
+                session, actor=current_user, supplier_id=supplier_id, payload=payload
+            )
         )
-    except (AuthorizationError, SupplierNotFoundError, SupplierConflictError, SupplierValidationError, IntegrityError, ValueError) as exc:
+    except (
+        AuthorizationError,
+        SupplierNotFoundError,
+        SupplierConflictError,
+        SupplierValidationError,
+        IntegrityError,
+        ValueError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
@@ -281,8 +324,17 @@ def create_representative_endpoint(
         representative = create_representative(
             session, actor=current_user, supplier_id=supplier_id, payload=payload
         )
-        return _representative_response(session, actor_id=current_user.id, representative=representative)
-    except (AuthorizationError, SupplierNotFoundError, SupplierConflictError, SupplierValidationError, IntegrityError, ValueError) as exc:
+        return _representative_response(
+            session, actor_id=current_user.id, representative=representative
+        )
+    except (
+        AuthorizationError,
+        SupplierNotFoundError,
+        SupplierConflictError,
+        SupplierValidationError,
+        IntegrityError,
+        ValueError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
@@ -306,8 +358,17 @@ def update_representative_endpoint(
             representative_id=representative_id,
             payload=payload,
         )
-        return _representative_response(session, actor_id=current_user.id, representative=representative)
-    except (AuthorizationError, SupplierNotFoundError, SupplierConflictError, SupplierValidationError, IntegrityError, ValueError) as exc:
+        return _representative_response(
+            session, actor_id=current_user.id, representative=representative
+        )
+    except (
+        AuthorizationError,
+        SupplierNotFoundError,
+        SupplierConflictError,
+        SupplierValidationError,
+        IntegrityError,
+        ValueError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
@@ -331,15 +392,25 @@ def list_supplier_tags_endpoint(
     return [SupplierTagResponse.model_validate(item) for item in items]
 
 
-@router.post("/tags/catalog", response_model=SupplierTagResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/tags/catalog", response_model=SupplierTagResponse, status_code=status.HTTP_201_CREATED
+)
 def create_supplier_tag_endpoint(
     payload: SupplierTagCreateRequest,
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[Session, Depends(get_db)],
 ) -> SupplierTagResponse:
     try:
-        return SupplierTagResponse.model_validate(create_tag(session, actor=current_user, payload=payload))
-    except (AuthorizationError, SupplierNotFoundError, SupplierConflictError, IntegrityError, ValueError) as exc:
+        return SupplierTagResponse.model_validate(
+            create_tag(session, actor=current_user, payload=payload)
+        )
+    except (
+        AuthorizationError,
+        SupplierNotFoundError,
+        SupplierConflictError,
+        IntegrityError,
+        ValueError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
@@ -352,8 +423,16 @@ def attach_supplier_tag_endpoint(
     session: Annotated[Session, Depends(get_db)],
 ) -> SupplierResponse:
     try:
-        return _supplier_response(attach_tag(session, actor=current_user, supplier_id=supplier_id, tag_id=tag_id))
-    except (AuthorizationError, SupplierNotFoundError, SupplierConflictError, IntegrityError, ValueError) as exc:
+        return _supplier_response(
+            attach_tag(session, actor=current_user, supplier_id=supplier_id, tag_id=tag_id)
+        )
+    except (
+        AuthorizationError,
+        SupplierNotFoundError,
+        SupplierConflictError,
+        IntegrityError,
+        ValueError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
@@ -366,8 +445,16 @@ def detach_supplier_tag_endpoint(
     session: Annotated[Session, Depends(get_db)],
 ) -> SupplierResponse:
     try:
-        return _supplier_response(detach_tag(session, actor=current_user, supplier_id=supplier_id, tag_id=tag_id))
-    except (AuthorizationError, SupplierNotFoundError, SupplierConflictError, IntegrityError, ValueError) as exc:
+        return _supplier_response(
+            detach_tag(session, actor=current_user, supplier_id=supplier_id, tag_id=tag_id)
+        )
+    except (
+        AuthorizationError,
+        SupplierNotFoundError,
+        SupplierConflictError,
+        IntegrityError,
+        ValueError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
@@ -385,7 +472,9 @@ def list_notes_endpoint(
     return [SupplierNoteResponse.model_validate(item) for item in items]
 
 
-@router.post("/{supplier_id}/notes", response_model=SupplierNoteResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/{supplier_id}/notes", response_model=SupplierNoteResponse, status_code=status.HTTP_201_CREATED
+)
 def create_note_endpoint(
     supplier_id: UUID,
     payload: SupplierNoteCreateRequest,
@@ -396,7 +485,14 @@ def create_note_endpoint(
         return SupplierNoteResponse.model_validate(
             create_note(session, actor=current_user, supplier_id=supplier_id, payload=payload)
         )
-    except (AuthorizationError, SupplierNotFoundError, SupplierConflictError, SupplierValidationError, IntegrityError, ValueError) as exc:
+    except (
+        AuthorizationError,
+        SupplierNotFoundError,
+        SupplierConflictError,
+        SupplierValidationError,
+        IntegrityError,
+        ValueError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
@@ -419,12 +515,21 @@ def update_note_endpoint(
                 payload=payload,
             )
         )
-    except (AuthorizationError, SupplierNotFoundError, SupplierConflictError, SupplierValidationError, IntegrityError, ValueError) as exc:
+    except (
+        AuthorizationError,
+        SupplierNotFoundError,
+        SupplierConflictError,
+        SupplierValidationError,
+        IntegrityError,
+        ValueError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
 
-@router.get("/{supplier_id}/external-references", response_model=list[SupplierExternalReferenceResponse])
+@router.get(
+    "/{supplier_id}/external-references", response_model=list[SupplierExternalReferenceResponse]
+)
 def list_external_references_endpoint(
     supplier_id: UUID,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -456,12 +561,21 @@ def create_external_reference_endpoint(
                 session, actor=current_user, supplier_id=supplier_id, payload=payload
             )
         )
-    except (AuthorizationError, SupplierNotFoundError, SupplierConflictError, SupplierValidationError, IntegrityError, ValueError) as exc:
+    except (
+        AuthorizationError,
+        SupplierNotFoundError,
+        SupplierConflictError,
+        SupplierValidationError,
+        IntegrityError,
+        ValueError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
 
-@router.delete("/{supplier_id}/external-references/{reference_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{supplier_id}/external-references/{reference_id}", status_code=status.HTTP_204_NO_CONTENT
+)
 def remove_external_reference_endpoint(
     supplier_id: UUID,
     reference_id: UUID,
@@ -475,7 +589,14 @@ def remove_external_reference_endpoint(
             supplier_id=supplier_id,
             reference_id=reference_id,
         )
-    except (AuthorizationError, SupplierNotFoundError, SupplierConflictError, SupplierValidationError, IntegrityError, ValueError) as exc:
+    except (
+        AuthorizationError,
+        SupplierNotFoundError,
+        SupplierConflictError,
+        SupplierValidationError,
+        IntegrityError,
+        ValueError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return Response(status_code=status.HTTP_204_NO_CONTENT)

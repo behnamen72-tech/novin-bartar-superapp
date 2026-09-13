@@ -93,7 +93,14 @@ def create_role_endpoint(
 ) -> RoleAdminItem:
     try:
         return create_role(session, actor=current_user, payload=payload)
-    except (AuthorizationError, AccessAdminNotFoundError, AccessAdminConflictError, AccessAdminValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        AccessAdminNotFoundError,
+        AccessAdminConflictError,
+        AccessAdminValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_admin_error(exc) from exc
 
@@ -107,7 +114,14 @@ def update_role_endpoint(
 ) -> RoleAdminItem:
     try:
         return update_role(session, actor=current_user, role_id=role_id, payload=payload)
-    except (AuthorizationError, AccessAdminNotFoundError, AccessAdminConflictError, AccessAdminValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        AccessAdminNotFoundError,
+        AccessAdminConflictError,
+        AccessAdminValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_admin_error(exc) from exc
 
@@ -121,7 +135,14 @@ def change_role_status_endpoint(
 ) -> RoleAdminItem:
     try:
         return change_role_status(session, actor=current_user, role_id=role_id, payload=payload)
-    except (AuthorizationError, AccessAdminNotFoundError, AccessAdminConflictError, AccessAdminValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        AccessAdminNotFoundError,
+        AccessAdminConflictError,
+        AccessAdminValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_admin_error(exc) from exc
 
@@ -140,7 +161,14 @@ def grant_role_permission_endpoint(
             role_id=role_id,
             permission_code=permission_code,
         )
-    except (AuthorizationError, AccessAdminNotFoundError, AccessAdminConflictError, AccessAdminValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        AccessAdminNotFoundError,
+        AccessAdminConflictError,
+        AccessAdminValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_admin_error(exc) from exc
 
@@ -159,12 +187,21 @@ def revoke_role_permission_endpoint(
             role_id=role_id,
             permission_code=permission_code,
         )
-    except (AuthorizationError, AccessAdminNotFoundError, AccessAdminConflictError, AccessAdminValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        AccessAdminNotFoundError,
+        AccessAdminConflictError,
+        AccessAdminValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_admin_error(exc) from exc
 
 
-@router.post("/assignments", response_model=AccessAssignmentItem, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/assignments", response_model=AccessAssignmentItem, status_code=status.HTTP_201_CREATED
+)
 def create_assignment_endpoint(
     payload: AccessAssignmentCreateRequest,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -172,7 +209,14 @@ def create_assignment_endpoint(
 ) -> AccessAssignmentItem:
     try:
         return create_access_assignment(session, actor=current_user, payload=payload)
-    except (AuthorizationError, AccessAdminNotFoundError, AccessAdminConflictError, AccessAdminValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        AccessAdminNotFoundError,
+        AccessAdminConflictError,
+        AccessAdminValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_admin_error(exc) from exc
 
@@ -191,7 +235,14 @@ def change_assignment_status_endpoint(
             assignment_id=assignment_id,
             payload=payload,
         )
-    except (AuthorizationError, AccessAdminNotFoundError, AccessAdminConflictError, AccessAdminValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        AccessAdminNotFoundError,
+        AccessAdminConflictError,
+        AccessAdminValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_admin_error(exc) from exc
 

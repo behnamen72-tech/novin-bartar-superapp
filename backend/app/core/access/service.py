@@ -69,11 +69,7 @@ def list_authorized_organizations(
     user_id: UUID,
     permission_code: str,
 ) -> list[Organization]:
-    organizations = list(
-        session.scalars(
-            select(Organization).order_by(Organization.name)
-        ).all()
-    )
+    organizations = list(session.scalars(select(Organization).order_by(Organization.name)).all())
 
     return [
         organization
@@ -102,9 +98,7 @@ def list_visible_organizations_for_management(
     scope: inactive rows are included only when the canonical B3
     ``has_permission_including_inactive_target`` check succeeds.
     """
-    organizations = list(
-        session.scalars(select(Organization).order_by(Organization.name)).all()
-    )
+    organizations = list(session.scalars(select(Organization).order_by(Organization.name)).all())
 
     result: list[Organization] = []
     for organization in organizations:

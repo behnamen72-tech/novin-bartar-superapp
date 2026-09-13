@@ -42,7 +42,9 @@ def _translate_write_error(exc: Exception) -> HTTPException:
     if isinstance(exc, OrganizationValidationError) or isinstance(exc, ValueError):
         return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
     if isinstance(exc, IntegrityError):
-        return HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Organization write conflict.")
+        return HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Organization write conflict."
+        )
     raise exc
 
 
@@ -76,7 +78,14 @@ def create_organization_endpoint(
 ) -> OrganizationListItem:
     try:
         organization = create_organization(session, actor=current_user, payload=payload)
-    except (AuthorizationError, OrganizationNotFoundError, OrganizationConflictError, OrganizationValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        OrganizationNotFoundError,
+        OrganizationConflictError,
+        OrganizationValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_write_error(exc) from exc
     return OrganizationListItem.model_validate(organization)
@@ -96,7 +105,14 @@ def update_organization_endpoint(
             organization_id=organization_id,
             payload=payload,
         )
-    except (AuthorizationError, OrganizationNotFoundError, OrganizationConflictError, OrganizationValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        OrganizationNotFoundError,
+        OrganizationConflictError,
+        OrganizationValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_write_error(exc) from exc
     return OrganizationListItem.model_validate(organization)
@@ -116,7 +132,14 @@ def change_organization_status_endpoint(
             organization_id=organization_id,
             payload=payload,
         )
-    except (AuthorizationError, OrganizationNotFoundError, OrganizationConflictError, OrganizationValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        OrganizationNotFoundError,
+        OrganizationConflictError,
+        OrganizationValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_write_error(exc) from exc
     return OrganizationListItem.model_validate(organization)

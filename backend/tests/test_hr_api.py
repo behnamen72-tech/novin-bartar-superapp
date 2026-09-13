@@ -251,7 +251,9 @@ def _create_position(
     return response.json()
 
 
-def test_hr_job_profiles_support_future_structure_and_inheritance(client: TestClient, hr_db: sessionmaker[Session]) -> None:
+def test_hr_job_profiles_support_future_structure_and_inheritance(
+    client: TestClient, hr_db: sessionmaker[Session]
+) -> None:
     ids = _seed_tree(hr_db)
     inherited = _create_profile(client, ids["admin"], ids["company_a"], code="GEN-MGR")
     _create_profile(
@@ -280,7 +282,9 @@ def test_hr_job_profiles_support_future_structure_and_inheritance(client: TestCl
         assert audit.organization_id == ids["company_a"]
 
 
-def test_hr_cross_company_access_is_denied_and_resource_ids_are_hidden(client: TestClient, hr_db: sessionmaker[Session]) -> None:
+def test_hr_cross_company_access_is_denied_and_resource_ids_are_hidden(
+    client: TestClient, hr_db: sessionmaker[Session]
+) -> None:
     ids = _seed_tree(hr_db)
     profile = _create_profile(client, ids["admin"], ids["company_a"])
 
@@ -298,7 +302,9 @@ def test_hr_cross_company_access_is_denied_and_resource_ids_are_hidden(client: T
     assert guessed_write.status_code == 404
 
 
-def test_shared_job_profile_mutation_requires_control_of_impacted_descendant_positions(client: TestClient, hr_db: sessionmaker[Session]) -> None:
+def test_shared_job_profile_mutation_requires_control_of_impacted_descendant_positions(
+    client: TestClient, hr_db: sessionmaker[Session]
+) -> None:
     ids = _seed_tree(hr_db)
     profile = _create_profile(client, ids["admin"], ids["company_a"])
     _create_position(
@@ -322,7 +328,6 @@ def test_shared_job_profile_mutation_requires_control_of_impacted_descendant_pos
         json={"title": "Changed by holding admin"},
     )
     assert allowed.status_code == 200, allowed.text
-
 
 
 def test_shared_job_profile_cannot_narrow_scope_while_descendant_position_is_active(
@@ -418,10 +423,15 @@ def test_employment_relationship_dates_support_future_planning_without_exposing_
     assert planned.status_code == 201, planned.text
     assert planned.json()["start_date"] == future_start.isoformat()
 
-def test_position_reporting_cycle_and_deactivation_dependencies_are_blocked(client: TestClient, hr_db: sessionmaker[Session]) -> None:
+
+def test_position_reporting_cycle_and_deactivation_dependencies_are_blocked(
+    client: TestClient, hr_db: sessionmaker[Session]
+) -> None:
     ids = _seed_tree(hr_db)
     profile = _create_profile(client, ids["admin"], ids["branch_a"], scope_mode="self")
-    top = _create_position(client, ids["branch_manager"], ids["branch_a"], profile["id"], code="TOP")
+    top = _create_position(
+        client, ids["branch_manager"], ids["branch_a"], profile["id"], code="TOP"
+    )
     child = _create_position(
         client,
         ids["branch_manager"],
@@ -446,7 +456,9 @@ def test_position_reporting_cycle_and_deactivation_dependencies_are_blocked(clie
     assert deactivate.status_code == 409
 
 
-def test_employment_requires_existing_person_relationship_and_enforces_single_active_seat(client: TestClient, hr_db: sessionmaker[Session]) -> None:
+def test_employment_requires_existing_person_relationship_and_enforces_single_active_seat(
+    client: TestClient, hr_db: sessionmaker[Session]
+) -> None:
     ids = _seed_tree(hr_db)
     profile = _create_profile(client, ids["admin"], ids["branch_a"], scope_mode="self")
     position = _create_position(
@@ -528,10 +540,14 @@ def test_employment_requires_existing_person_relationship_and_enforces_single_ac
     assert duplicate_seat.status_code == 409
 
 
-def test_employment_history_can_end_and_reactivate_without_hard_delete(client: TestClient, hr_db: sessionmaker[Session]) -> None:
+def test_employment_history_can_end_and_reactivate_without_hard_delete(
+    client: TestClient, hr_db: sessionmaker[Session]
+) -> None:
     ids = _seed_tree(hr_db)
     profile = _create_profile(client, ids["admin"], ids["branch_a"], scope_mode="self")
-    position = _create_position(client, ids["branch_manager"], ids["branch_a"], profile["id"], code="SEAT")
+    position = _create_position(
+        client, ids["branch_manager"], ids["branch_a"], profile["id"], code="SEAT"
+    )
     created = client.post(
         "/api/v1/hr/employments",
         headers=headers(ids["branch_manager"]),
@@ -572,7 +588,9 @@ def test_employment_history_can_end_and_reactivate_without_hard_delete(client: T
         assert len(status_audits) == 2
 
 
-def test_hr_organization_capabilities_do_not_depend_on_organization_read(client: TestClient, hr_db: sessionmaker[Session]) -> None:
+def test_hr_organization_capabilities_do_not_depend_on_organization_read(
+    client: TestClient, hr_db: sessionmaker[Session]
+) -> None:
     ids = _seed_tree(hr_db)
     response = client.get("/api/v1/hr/organizations", headers=headers(ids["branch_manager"]))
     assert response.status_code == 200, response.text
@@ -583,7 +601,9 @@ def test_hr_organization_capabilities_do_not_depend_on_organization_read(client:
     assert payload[0]["can_manage"] is True
 
 
-def test_hr_write_endpoints_require_authentication(client: TestClient, hr_db: sessionmaker[Session]) -> None:
+def test_hr_write_endpoints_require_authentication(
+    client: TestClient, hr_db: sessionmaker[Session]
+) -> None:
     ids = _seed_tree(hr_db)
     response = client.post(
         "/api/v1/hr/job-profiles",

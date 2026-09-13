@@ -53,9 +53,7 @@ def test_foundation_entities_can_be_persisted() -> None:
         session.add_all([holding, company, person, relationship, user])
         session.commit()
 
-        persisted_user = session.scalar(
-            select(User).where(User.email == "user@example.com")
-        )
+        persisted_user = session.scalar(select(User).where(User.email == "user@example.com"))
         assert persisted_user is not None
         assert persisted_user.person.first_name == "Test"
         assert persisted_user.person.organization_relationships[0].organization.code == "ENFERADI"

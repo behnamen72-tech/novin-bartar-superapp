@@ -7,12 +7,8 @@ ALLOWED_DOCUMENT_EXTENSIONS: frozenset[str] = frozenset(
 
 ALLOWED_MIME_BY_EXTENSION: dict[str, frozenset[str]] = {
     ".pdf": frozenset({"application/pdf"}),
-    ".docx": frozenset(
-        {"application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
-    ),
-    ".xlsx": frozenset(
-        {"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
-    ),
+    ".docx": frozenset({"application/vnd.openxmlformats-officedocument.wordprocessingml.document"}),
+    ".xlsx": frozenset({"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}),
     ".png": frozenset({"image/png"}),
     ".jpg": frozenset({"image/jpeg"}),
     ".jpeg": frozenset({"image/jpeg"}),

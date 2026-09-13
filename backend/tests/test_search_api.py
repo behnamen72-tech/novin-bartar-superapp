@@ -248,7 +248,9 @@ def test_search_is_permission_aware_and_does_not_leak_cross_company_rows(
     search_db: sessionmaker[Session],
 ) -> None:
     seeded = _seed(search_db)
-    response = client.get("/api/v1/search?q=alpha&limit_per_type=20", headers=_headers(seeded["actor"]))
+    response = client.get(
+        "/api/v1/search?q=alpha&limit_per_type=20", headers=_headers(seeded["actor"])
+    )
     assert response.status_code == 200, response.text
     payload = response.json()
     ids = {item["id"] for item in payload["results"]}

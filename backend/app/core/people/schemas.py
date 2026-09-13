@@ -52,7 +52,11 @@ class PersonCreateRequest(BaseModel):
 
     @model_validator(mode="after")
     def validate_dates(self) -> "PersonCreateRequest":
-        if self.start_date is not None and self.end_date is not None and self.end_date < self.start_date:
+        if (
+            self.start_date is not None
+            and self.end_date is not None
+            and self.end_date < self.start_date
+        ):
             raise ValueError("Relationship end_date cannot be before start_date.")
         return self
 
@@ -102,7 +106,11 @@ class PersonRelationshipCreateRequest(BaseModel):
 
     @model_validator(mode="after")
     def validate_dates(self) -> "PersonRelationshipCreateRequest":
-        if self.start_date is not None and self.end_date is not None and self.end_date < self.start_date:
+        if (
+            self.start_date is not None
+            and self.end_date is not None
+            and self.end_date < self.start_date
+        ):
             raise ValueError("Relationship end_date cannot be before start_date.")
         return self
 

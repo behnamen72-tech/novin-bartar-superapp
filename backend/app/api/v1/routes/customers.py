@@ -176,7 +176,9 @@ def patch_crm_customer(
     session: Annotated[Session, Depends(get_db)],
 ) -> CustomerCRMResponse:
     try:
-        item = update_customer(session, actor=current_user, customer_id=customer_id, payload=payload)
+        item = update_customer(
+            session, actor=current_user, customer_id=customer_id, payload=payload
+        )
     except (
         AuthorizationError,
         CRMNotFoundError,

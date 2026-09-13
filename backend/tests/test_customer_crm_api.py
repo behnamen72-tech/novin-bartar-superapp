@@ -265,7 +265,9 @@ def test_customer_reference_is_external_org_scoped_and_db_unique(
 
     with crm_db() as session:
         rows = session.scalars(
-            select(CustomerCRMRecord).where(CustomerCRMRecord.commerce_customer_ref == "cus_shared_001")
+            select(CustomerCRMRecord).where(
+                CustomerCRMRecord.commerce_customer_ref == "cus_shared_001"
+            )
         ).all()
         assert {row.organization_id for row in rows} == {ids["branch_a"], ids["branch_b"]}
 
@@ -662,7 +664,5 @@ def test_tag_free_text_is_not_copied_into_audit_payload(
             select(AuditEvent).where(AuditEvent.resource_type == "customer_tag")
         ).all()
         assert len(events) == 1
-        serialized = str(
-            (events[0].before_state, events[0].after_state, events[0].event_metadata)
-        )
+        serialized = str((events[0].before_state, events[0].after_state, events[0].event_metadata))
         assert sensitive_tag not in serialized

@@ -116,9 +116,10 @@ def test_login_issues_access_and_opaque_refresh_token(
     with auth_session_db() as session:
         stored = session.scalar(select(UserSession))
         assert stored is not None
-        assert stored.refresh_token_hash == hashlib.sha256(
-            body["refresh_token"].encode("utf-8")
-        ).hexdigest()
+        assert (
+            stored.refresh_token_hash
+            == hashlib.sha256(body["refresh_token"].encode("utf-8")).hexdigest()
+        )
         assert body["refresh_token"] not in stored.refresh_token_hash
         actions = set(session.scalars(select(AuditEvent.action)).all())
         assert "auth.login.succeeded" in actions

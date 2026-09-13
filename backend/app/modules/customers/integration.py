@@ -56,15 +56,13 @@ def _base_url() -> str:
     normalized = value.rstrip("/")
     if not normalized.startswith("https://"):
         local_allowed = settings.app_env.lower() in {"development", "test"} and (
-            normalized.startswith("http://localhost")
-            or normalized.startswith("http://127.0.0.1")
+            normalized.startswith("http://localhost") or normalized.startswith("http://127.0.0.1")
         )
         if not local_allowed:
             raise CommerceIntegrationUnavailableError(
                 "Commerce integration requires HTTPS outside local development."
             )
     return normalized
-
 
 
 def _retry_delay_seconds(response: httpx.Response | None, *, attempt: int) -> float:

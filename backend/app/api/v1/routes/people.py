@@ -75,8 +75,16 @@ def create_person_endpoint(
 ) -> PersonListItem:
     try:
         person = create_person(session, actor=current_user, payload=payload)
-        return get_person_for_user(session, user_id=current_user.id, person_id=person.id, permission_code=PEOPLE_MANAGE)
-    except (AuthorizationError, PersonNotFoundError, PersonConflictError, ValueError, IntegrityError) as exc:
+        return get_person_for_user(
+            session, user_id=current_user.id, person_id=person.id, permission_code=PEOPLE_MANAGE
+        )
+    except (
+        AuthorizationError,
+        PersonNotFoundError,
+        PersonConflictError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
@@ -90,8 +98,16 @@ def update_person_endpoint(
 ) -> PersonListItem:
     try:
         person = update_person(session, actor=current_user, person_id=person_id, payload=payload)
-        return get_person_for_user(session, user_id=current_user.id, person_id=person.id, permission_code=PEOPLE_MANAGE)
-    except (AuthorizationError, PersonNotFoundError, PersonConflictError, ValueError, IntegrityError) as exc:
+        return get_person_for_user(
+            session, user_id=current_user.id, person_id=person.id, permission_code=PEOPLE_MANAGE
+        )
+    except (
+        AuthorizationError,
+        PersonNotFoundError,
+        PersonConflictError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
@@ -104,14 +120,28 @@ def change_person_status_endpoint(
     session: Annotated[Session, Depends(get_db)],
 ) -> PersonListItem:
     try:
-        person = change_person_status(session, actor=current_user, person_id=person_id, payload=payload)
-        return get_person_for_user(session, user_id=current_user.id, person_id=person.id, permission_code=PEOPLE_MANAGE)
-    except (AuthorizationError, PersonNotFoundError, PersonConflictError, ValueError, IntegrityError) as exc:
+        person = change_person_status(
+            session, actor=current_user, person_id=person_id, payload=payload
+        )
+        return get_person_for_user(
+            session, user_id=current_user.id, person_id=person.id, permission_code=PEOPLE_MANAGE
+        )
+    except (
+        AuthorizationError,
+        PersonNotFoundError,
+        PersonConflictError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
 
-@router.post("/{person_id}/relationships", response_model=PersonRelationshipItem, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/{person_id}/relationships",
+    response_model=PersonRelationshipItem,
+    status_code=status.HTTP_201_CREATED,
+)
 def create_person_relationship_endpoint(
     person_id: UUID,
     payload: PersonRelationshipCreateRequest,
@@ -119,7 +149,9 @@ def create_person_relationship_endpoint(
     session: Annotated[Session, Depends(get_db)],
 ) -> PersonRelationshipItem:
     try:
-        relationship = add_person_relationship(session, actor=current_user, person_id=person_id, payload=payload)
+        relationship = add_person_relationship(
+            session, actor=current_user, person_id=person_id, payload=payload
+        )
         return PersonRelationshipItem(
             id=relationship.id,
             organization_id=relationship.organization_id,
@@ -129,12 +161,20 @@ def create_person_relationship_endpoint(
             end_date=relationship.end_date,
             is_active=relationship.is_active,
         )
-    except (AuthorizationError, PersonNotFoundError, PersonConflictError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        PersonNotFoundError,
+        PersonConflictError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
 
-@router.patch("/{person_id}/relationships/{relationship_id}/status", response_model=PersonRelationshipItem)
+@router.patch(
+    "/{person_id}/relationships/{relationship_id}/status", response_model=PersonRelationshipItem
+)
 def change_person_relationship_status_endpoint(
     person_id: UUID,
     relationship_id: UUID,
@@ -159,6 +199,13 @@ def change_person_relationship_status_endpoint(
             end_date=relationship.end_date,
             is_active=relationship.is_active,
         )
-    except (AuthorizationError, PersonNotFoundError, PersonRelationshipNotFoundError, PersonConflictError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        PersonNotFoundError,
+        PersonRelationshipNotFoundError,
+        PersonConflictError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc

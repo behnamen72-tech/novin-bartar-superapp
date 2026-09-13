@@ -106,9 +106,7 @@ class CustomerCRMRecord(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 class CustomerTag(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "customer_tags"
     __table_args__ = (
-        UniqueConstraint(
-            "organization_id", "normalized_name", name="uq_customer_tag_org_name"
-        ),
+        UniqueConstraint("organization_id", "normalized_name", name="uq_customer_tag_org_name"),
         Index("ix_customer_tags_org_active", "organization_id", "is_active"),
     )
 
@@ -164,9 +162,7 @@ class CustomerNote(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     body: Mapped[str] = mapped_column(String(4000), nullable=False)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
-    customer: Mapped[CustomerCRMRecord] = relationship(
-        "CustomerCRMRecord", back_populates="notes"
-    )
+    customer: Mapped[CustomerCRMRecord] = relationship("CustomerCRMRecord", back_populates="notes")
     author: Mapped[User] = relationship("User")
 
 

@@ -62,7 +62,6 @@ def _organization_is_in_scope(
     return False
 
 
-
 def organization_is_in_scope(
     session: Session,
     *,
@@ -77,6 +76,7 @@ def organization_is_in_scope(
         scope_mode=scope_mode,
         target_organization_id=target_organization_id,
     )
+
 
 def assignment_is_effective_for_organization(
     session: Session,
@@ -147,7 +147,6 @@ def has_permission(
     return False
 
 
-
 def has_permission_including_inactive_target(
     session: Session,
     *,
@@ -190,6 +189,7 @@ def has_permission_including_inactive_target(
         ):
             return True
     return False
+
 
 def require_permission_for_organization(
     session: Session,

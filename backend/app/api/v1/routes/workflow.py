@@ -57,7 +57,10 @@ def _translate_error(exc: Exception) -> HTTPException:
     if isinstance(exc, WorkflowNotFoundError):
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
     if isinstance(exc, WorkflowConflictError) or isinstance(exc, IntegrityError):
-        return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc) if not isinstance(exc, IntegrityError) else "Workflow write conflict.")
+        return HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc) if not isinstance(exc, IntegrityError) else "Workflow write conflict.",
+        )
     if isinstance(exc, WorkflowValidationError) or isinstance(exc, ValueError):
         return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
     raise exc
@@ -91,7 +94,9 @@ def list_workflow_definitions(
     return [WorkflowDefinitionResponse.model_validate(item) for item in definitions]
 
 
-@router.post("/definitions", response_model=WorkflowDefinitionResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/definitions", response_model=WorkflowDefinitionResponse, status_code=status.HTTP_201_CREATED
+)
 def create_workflow_definition(
     payload: WorkflowDefinitionCreateRequest,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -99,7 +104,14 @@ def create_workflow_definition(
 ) -> WorkflowDefinitionResponse:
     try:
         item = create_definition(session, actor=current_user, payload=payload)
-    except (AuthorizationError, WorkflowNotFoundError, WorkflowConflictError, WorkflowValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        WorkflowNotFoundError,
+        WorkflowConflictError,
+        WorkflowValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return WorkflowDefinitionResponse.model_validate(item)
@@ -132,8 +144,17 @@ def update_workflow_definition(
     session: Annotated[Session, Depends(get_db)],
 ) -> WorkflowDefinitionResponse:
     try:
-        item = update_definition(session, actor=current_user, definition_id=definition_id, payload=payload)
-    except (AuthorizationError, WorkflowNotFoundError, WorkflowConflictError, WorkflowValidationError, ValueError, IntegrityError) as exc:
+        item = update_definition(
+            session, actor=current_user, definition_id=definition_id, payload=payload
+        )
+    except (
+        AuthorizationError,
+        WorkflowNotFoundError,
+        WorkflowConflictError,
+        WorkflowValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return WorkflowDefinitionResponse.model_validate(item)
@@ -148,13 +169,22 @@ def add_workflow_state(
 ) -> WorkflowDefinitionResponse:
     try:
         item = add_state(session, actor=current_user, definition_id=definition_id, payload=payload)
-    except (AuthorizationError, WorkflowNotFoundError, WorkflowConflictError, WorkflowValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        WorkflowNotFoundError,
+        WorkflowConflictError,
+        WorkflowValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return WorkflowDefinitionResponse.model_validate(item)
 
 
-@router.patch("/definitions/{definition_id}/states/{state_id}", response_model=WorkflowDefinitionResponse)
+@router.patch(
+    "/definitions/{definition_id}/states/{state_id}", response_model=WorkflowDefinitionResponse
+)
 def update_workflow_state(
     definition_id: UUID,
     state_id: UUID,
@@ -163,14 +193,29 @@ def update_workflow_state(
     session: Annotated[Session, Depends(get_db)],
 ) -> WorkflowDefinitionResponse:
     try:
-        item = update_state(session, actor=current_user, definition_id=definition_id, state_id=state_id, payload=payload)
-    except (AuthorizationError, WorkflowNotFoundError, WorkflowConflictError, WorkflowValidationError, ValueError, IntegrityError) as exc:
+        item = update_state(
+            session,
+            actor=current_user,
+            definition_id=definition_id,
+            state_id=state_id,
+            payload=payload,
+        )
+    except (
+        AuthorizationError,
+        WorkflowNotFoundError,
+        WorkflowConflictError,
+        WorkflowValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return WorkflowDefinitionResponse.model_validate(item)
 
 
-@router.delete("/definitions/{definition_id}/states/{state_id}", response_model=WorkflowDefinitionResponse)
+@router.delete(
+    "/definitions/{definition_id}/states/{state_id}", response_model=WorkflowDefinitionResponse
+)
 def delete_workflow_state(
     definition_id: UUID,
     state_id: UUID,
@@ -178,8 +223,17 @@ def delete_workflow_state(
     session: Annotated[Session, Depends(get_db)],
 ) -> WorkflowDefinitionResponse:
     try:
-        item = delete_state(session, actor=current_user, definition_id=definition_id, state_id=state_id)
-    except (AuthorizationError, WorkflowNotFoundError, WorkflowConflictError, WorkflowValidationError, ValueError, IntegrityError) as exc:
+        item = delete_state(
+            session, actor=current_user, definition_id=definition_id, state_id=state_id
+        )
+    except (
+        AuthorizationError,
+        WorkflowNotFoundError,
+        WorkflowConflictError,
+        WorkflowValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return WorkflowDefinitionResponse.model_validate(item)
@@ -193,14 +247,26 @@ def add_workflow_transition(
     session: Annotated[Session, Depends(get_db)],
 ) -> WorkflowDefinitionResponse:
     try:
-        item = add_transition(session, actor=current_user, definition_id=definition_id, payload=payload)
-    except (AuthorizationError, WorkflowNotFoundError, WorkflowConflictError, WorkflowValidationError, ValueError, IntegrityError) as exc:
+        item = add_transition(
+            session, actor=current_user, definition_id=definition_id, payload=payload
+        )
+    except (
+        AuthorizationError,
+        WorkflowNotFoundError,
+        WorkflowConflictError,
+        WorkflowValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return WorkflowDefinitionResponse.model_validate(item)
 
 
-@router.patch("/definitions/{definition_id}/transitions/{transition_id}", response_model=WorkflowDefinitionResponse)
+@router.patch(
+    "/definitions/{definition_id}/transitions/{transition_id}",
+    response_model=WorkflowDefinitionResponse,
+)
 def update_workflow_transition(
     definition_id: UUID,
     transition_id: UUID,
@@ -209,14 +275,30 @@ def update_workflow_transition(
     session: Annotated[Session, Depends(get_db)],
 ) -> WorkflowDefinitionResponse:
     try:
-        item = update_transition(session, actor=current_user, definition_id=definition_id, transition_id=transition_id, payload=payload)
-    except (AuthorizationError, WorkflowNotFoundError, WorkflowConflictError, WorkflowValidationError, ValueError, IntegrityError) as exc:
+        item = update_transition(
+            session,
+            actor=current_user,
+            definition_id=definition_id,
+            transition_id=transition_id,
+            payload=payload,
+        )
+    except (
+        AuthorizationError,
+        WorkflowNotFoundError,
+        WorkflowConflictError,
+        WorkflowValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return WorkflowDefinitionResponse.model_validate(item)
 
 
-@router.delete("/definitions/{definition_id}/transitions/{transition_id}", response_model=WorkflowDefinitionResponse)
+@router.delete(
+    "/definitions/{definition_id}/transitions/{transition_id}",
+    response_model=WorkflowDefinitionResponse,
+)
 def delete_workflow_transition(
     definition_id: UUID,
     transition_id: UUID,
@@ -224,8 +306,17 @@ def delete_workflow_transition(
     session: Annotated[Session, Depends(get_db)],
 ) -> WorkflowDefinitionResponse:
     try:
-        item = delete_transition(session, actor=current_user, definition_id=definition_id, transition_id=transition_id)
-    except (AuthorizationError, WorkflowNotFoundError, WorkflowConflictError, WorkflowValidationError, ValueError, IntegrityError) as exc:
+        item = delete_transition(
+            session, actor=current_user, definition_id=definition_id, transition_id=transition_id
+        )
+    except (
+        AuthorizationError,
+        WorkflowNotFoundError,
+        WorkflowConflictError,
+        WorkflowValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return WorkflowDefinitionResponse.model_validate(item)
@@ -239,7 +330,14 @@ def publish_workflow_definition(
 ) -> WorkflowDefinitionResponse:
     try:
         item = publish_definition(session, actor=current_user, definition_id=definition_id)
-    except (AuthorizationError, WorkflowNotFoundError, WorkflowConflictError, WorkflowValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        WorkflowNotFoundError,
+        WorkflowConflictError,
+        WorkflowValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return WorkflowDefinitionResponse.model_validate(item)
@@ -253,13 +351,24 @@ def retire_workflow_definition(
 ) -> WorkflowDefinitionResponse:
     try:
         item = retire_definition(session, actor=current_user, definition_id=definition_id)
-    except (AuthorizationError, WorkflowNotFoundError, WorkflowConflictError, WorkflowValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        WorkflowNotFoundError,
+        WorkflowConflictError,
+        WorkflowValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return WorkflowDefinitionResponse.model_validate(item)
 
 
-@router.post("/definitions/{definition_id}/new-version", response_model=WorkflowDefinitionResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/definitions/{definition_id}/new-version",
+    response_model=WorkflowDefinitionResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 def new_workflow_definition_version(
     definition_id: UUID,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -267,7 +376,14 @@ def new_workflow_definition_version(
 ) -> WorkflowDefinitionResponse:
     try:
         item = create_new_version(session, actor=current_user, definition_id=definition_id)
-    except (AuthorizationError, WorkflowNotFoundError, WorkflowConflictError, WorkflowValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        WorkflowNotFoundError,
+        WorkflowConflictError,
+        WorkflowValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return WorkflowDefinitionResponse.model_validate(item)
@@ -300,7 +416,9 @@ def list_workflow_instances(
     return [WorkflowInstanceResponse.model_validate(item) for item in items]
 
 
-@router.post("/instances", response_model=WorkflowInstanceResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/instances", response_model=WorkflowInstanceResponse, status_code=status.HTTP_201_CREATED
+)
 def create_workflow_instance(
     payload: WorkflowInstanceCreateRequest,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -308,7 +426,14 @@ def create_workflow_instance(
 ) -> WorkflowInstanceResponse:
     try:
         item = start_instance(session, actor=current_user, payload=payload)
-    except (AuthorizationError, WorkflowNotFoundError, WorkflowConflictError, WorkflowValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        WorkflowNotFoundError,
+        WorkflowConflictError,
+        WorkflowValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return WorkflowInstanceResponse.model_validate(item)
@@ -335,8 +460,17 @@ def transition_workflow_instance(
     session: Annotated[Session, Depends(get_db)],
 ) -> WorkflowInstanceResponse:
     try:
-        item = transition_instance(session, actor=current_user, instance_id=instance_id, payload=payload)
-    except (AuthorizationError, WorkflowNotFoundError, WorkflowConflictError, WorkflowValidationError, ValueError, IntegrityError) as exc:
+        item = transition_instance(
+            session, actor=current_user, instance_id=instance_id, payload=payload
+        )
+    except (
+        AuthorizationError,
+        WorkflowNotFoundError,
+        WorkflowConflictError,
+        WorkflowValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return WorkflowInstanceResponse.model_validate(item)
@@ -350,7 +484,14 @@ def cancel_workflow_instance(
 ) -> WorkflowInstanceResponse:
     try:
         item = cancel_instance(session, actor=current_user, instance_id=instance_id)
-    except (AuthorizationError, WorkflowNotFoundError, WorkflowConflictError, WorkflowValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        WorkflowNotFoundError,
+        WorkflowConflictError,
+        WorkflowValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return WorkflowInstanceResponse.model_validate(item)

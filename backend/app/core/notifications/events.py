@@ -10,11 +10,7 @@ class NotificationIntegrityError(ValueError):
 @event.listens_for(Notification, "before_update")
 def prevent_notification_content_mutation(mapper, connection, target: Notification) -> None:  # noqa: ARG001
     state = inspect(target)
-    changed = {
-        attribute.key
-        for attribute in state.attrs
-        if attribute.history.has_changes()
-    }
+    changed = {attribute.key for attribute in state.attrs if attribute.history.has_changes()}
     illegal = changed - {"read_at"}
     if illegal:
         raise NotificationIntegrityError(

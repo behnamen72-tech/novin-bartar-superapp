@@ -251,9 +251,8 @@ def update_user(
         person=target.person,
     )
     from app.core.access.service import assert_actor_dominates_user_access
-    assert_actor_dominates_user_access(
-        session, actor_user_id=actor.id, target_user_id=target.id
-    )
+
+    assert_actor_dominates_user_access(session, actor_user_id=actor.id, target_user_id=target.id)
     changes = payload.model_dump(exclude_unset=True)
     if not changes:
         return target
@@ -301,16 +300,17 @@ def change_user_status(
 ) -> User:
     target = _get_user(session, target_user_id, for_update=True)
     if target.id == actor.id and not payload.is_active:
-        raise UserAdminConflictError("Administrators cannot deactivate their own account through this endpoint.")
+        raise UserAdminConflictError(
+            "Administrators cannot deactivate their own account through this endpoint."
+        )
     organization_ids = _require_users_manage_for_person(
         session,
         actor_user_id=actor.id,
         person=target.person,
     )
     from app.core.access.service import assert_actor_dominates_user_access
-    assert_actor_dominates_user_access(
-        session, actor_user_id=actor.id, target_user_id=target.id
-    )
+
+    assert_actor_dominates_user_access(session, actor_user_id=actor.id, target_user_id=target.id)
     if target.is_active is payload.is_active:
         return target
 
@@ -345,9 +345,8 @@ def reset_user_password(
         person=target.person,
     )
     from app.core.access.service import assert_actor_dominates_user_access
-    assert_actor_dominates_user_access(
-        session, actor_user_id=actor.id, target_user_id=target.id
-    )
+
+    assert_actor_dominates_user_access(session, actor_user_id=actor.id, target_user_id=target.id)
     target.password_hash = hash_password(payload.new_password.get_secret_value())
     for organization_id in sorted(organization_ids, key=str):
         record_audit_event(

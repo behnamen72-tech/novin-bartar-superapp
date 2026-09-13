@@ -183,8 +183,6 @@ def seed_documents_case(
         return user, company_a, company_b
 
 
-
-
 def seed_additional_document_user(
     factory: sessionmaker[Session],
     *,
@@ -249,9 +247,7 @@ def role_id_for_user(
 ) -> UUID:
     with factory() as session:
         role_id = session.scalar(
-            select(UserRoleAssignment.role_id).where(
-                UserRoleAssignment.user_id == user_id
-            )
+            select(UserRoleAssignment.role_id).where(UserRoleAssignment.user_id == user_id)
         )
         assert role_id is not None
         return role_id
@@ -789,9 +785,7 @@ def test_archive_freezes_mutations_but_keeps_download_and_restore(
         assert persisted.status == DocumentStatus.ACTIVE
         actions = list(
             session.scalars(
-                select(AuditEvent.action).where(
-                    AuditEvent.resource_id == document_id
-                )
+                select(AuditEvent.action).where(AuditEvent.resource_id == document_id)
             ).all()
         )
         assert actions.count("document.archived") == 1
@@ -951,11 +945,14 @@ def test_document_read_acl_allows_reader_but_not_management(
     document = create_document_via_api(client, owner, company_a)
     owner_role_id = role_id_for_user(documents_db, user_id=owner.id)
 
-    assert client.post(
-        f"/api/v1/documents/{document['id']}/permissions",
-        headers=auth_headers(owner),
-        json={"role_id": str(owner_role_id), "permission_type": "manage"},
-    ).status_code == 201
+    assert (
+        client.post(
+            f"/api/v1/documents/{document['id']}/permissions",
+            headers=auth_headers(owner),
+            json={"role_id": str(owner_role_id), "permission_type": "manage"},
+        ).status_code
+        == 201
+    )
     read_grant = client.post(
         f"/api/v1/documents/{document['id']}/permissions",
         headers=auth_headers(owner),
@@ -990,11 +987,14 @@ def test_document_manage_acl_controls_mutations_for_same_org_manager(
     document = create_document_via_api(client, owner, company_a)
     owner_role_id = role_id_for_user(documents_db, user_id=owner.id)
 
-    assert client.post(
-        f"/api/v1/documents/{document['id']}/permissions",
-        headers=auth_headers(owner),
-        json={"role_id": str(owner_role_id), "permission_type": "manage"},
-    ).status_code == 201
+    assert (
+        client.post(
+            f"/api/v1/documents/{document['id']}/permissions",
+            headers=auth_headers(owner),
+            json={"role_id": str(owner_role_id), "permission_type": "manage"},
+        ).status_code
+        == 201
+    )
 
     blocked = client.post(
         f"/api/v1/documents/{document['id']}/archive",
@@ -1105,11 +1105,14 @@ def test_document_acl_rejects_role_without_required_base_permission(
     )
     document = create_document_via_api(client, owner, company_a)
     owner_role_id = role_id_for_user(documents_db, user_id=owner.id)
-    assert client.post(
-        f"/api/v1/documents/{document['id']}/permissions",
-        headers=auth_headers(owner),
-        json={"role_id": str(owner_role_id), "permission_type": "manage"},
-    ).status_code == 201
+    assert (
+        client.post(
+            f"/api/v1/documents/{document['id']}/permissions",
+            headers=auth_headers(owner),
+            json={"role_id": str(owner_role_id), "permission_type": "manage"},
+        ).status_code
+        == 201
+    )
 
     invalid_manage = client.post(
         f"/api/v1/documents/{document['id']}/permissions",
@@ -1185,11 +1188,14 @@ def test_document_acl_role_from_other_organization_does_not_match(
     )
     document = create_document_via_api(client, owner, company_a)
     owner_role_id = role_id_for_user(documents_db, user_id=owner.id)
-    assert client.post(
-        f"/api/v1/documents/{document['id']}/permissions",
-        headers=auth_headers(owner),
-        json={"role_id": str(owner_role_id), "permission_type": "manage"},
-    ).status_code == 201
+    assert (
+        client.post(
+            f"/api/v1/documents/{document['id']}/permissions",
+            headers=auth_headers(owner),
+            json={"role_id": str(owner_role_id), "permission_type": "manage"},
+        ).status_code
+        == 201
+    )
 
     cross_scope_grant = client.post(
         f"/api/v1/documents/{document['id']}/permissions",
@@ -1321,23 +1327,35 @@ def test_b55_category_cycle_and_soft_deactivation_rules(
     )
     assert parent_first.status_code == 409
 
-    assert client.delete(
-        f"/api/v1/document-categories/{child['id']}",
-        headers=auth_headers(user),
-    ).status_code == 204
-    assert client.delete(
-        f"/api/v1/document-categories/{root['id']}",
-        headers=auth_headers(user),
-    ).status_code == 204
+    assert (
+        client.delete(
+            f"/api/v1/document-categories/{child['id']}",
+            headers=auth_headers(user),
+        ).status_code
+        == 204
+    )
+    assert (
+        client.delete(
+            f"/api/v1/document-categories/{root['id']}",
+            headers=auth_headers(user),
+        ).status_code
+        == 204
+    )
 
-    assert client.post(
-        f"/api/v1/document-categories/{root['id']}/restore",
-        headers=auth_headers(user),
-    ).status_code == 200
-    assert client.post(
-        f"/api/v1/document-categories/{child['id']}/restore",
-        headers=auth_headers(user),
-    ).status_code == 200
+    assert (
+        client.post(
+            f"/api/v1/document-categories/{root['id']}/restore",
+            headers=auth_headers(user),
+        ).status_code
+        == 200
+    )
+    assert (
+        client.post(
+            f"/api/v1/document-categories/{child['id']}/restore",
+            headers=auth_headers(user),
+        ).status_code
+        == 200
+    )
 
     with documents_db() as session:
         persisted = session.get(DocumentCategory, UUID(child["id"]))
@@ -1430,10 +1448,13 @@ def test_b55_metadata_rejects_cross_org_category_and_archived_mutation(
     )
     assert cross_org.status_code == 404
 
-    assert client.post(
-        f"/api/v1/documents/{document['id']}/archive",
-        headers=auth_headers(user),
-    ).status_code == 200
+    assert (
+        client.post(
+            f"/api/v1/documents/{document['id']}/archive",
+            headers=auth_headers(user),
+        ).status_code
+        == 200
+    )
     frozen = client.patch(
         f"/api/v1/documents/{document['id']}/metadata",
         headers=auth_headers(user),
@@ -1553,15 +1574,21 @@ def test_b55_inactive_retention_policy_cannot_be_newly_assigned(
         },
     ).json()
 
-    assert client.patch(
-        f"/api/v1/documents/{first['id']}/metadata",
-        headers=auth_headers(user),
-        json={"retention_policy_id": policy["id"]},
-    ).status_code == 200
-    assert client.delete(
-        f"/api/v1/document-retention-policies/{policy['id']}",
-        headers=auth_headers(user),
-    ).status_code == 204
+    assert (
+        client.patch(
+            f"/api/v1/documents/{first['id']}/metadata",
+            headers=auth_headers(user),
+            json={"retention_policy_id": policy["id"]},
+        ).status_code
+        == 200
+    )
+    assert (
+        client.delete(
+            f"/api/v1/document-retention-policies/{policy['id']}",
+            headers=auth_headers(user),
+        ).status_code
+        == 204
+    )
 
     rejected = client.patch(
         f"/api/v1/documents/{second['id']}/metadata",
@@ -1591,11 +1618,14 @@ def test_b55_expiring_list_respects_document_acl(
         label="ExpiryViewer",
     )
     document = create_document_via_api(client, owner, company_a)
-    assert client.patch(
-        f"/api/v1/documents/{document['id']}/metadata",
-        headers=auth_headers(owner),
-        json={"expires_at": (datetime.now(UTC) + timedelta(days=5)).isoformat()},
-    ).status_code == 200
+    assert (
+        client.patch(
+            f"/api/v1/documents/{document['id']}/metadata",
+            headers=auth_headers(owner),
+            json={"expires_at": (datetime.now(UTC) + timedelta(days=5)).isoformat()},
+        ).status_code
+        == 200
+    )
 
     visible_before_acl = client.get(
         "/api/v1/documents/expiring",
@@ -1606,11 +1636,14 @@ def test_b55_expiring_list_respects_document_acl(
     assert document["id"] in {item["document"]["id"] for item in visible_before_acl.json()}
 
     owner_role_id = role_id_for_user(documents_db, user_id=owner.id)
-    assert client.post(
-        f"/api/v1/documents/{document['id']}/permissions",
-        headers=auth_headers(owner),
-        json={"role_id": str(owner_role_id), "permission_type": "manage"},
-    ).status_code == 201
+    assert (
+        client.post(
+            f"/api/v1/documents/{document['id']}/permissions",
+            headers=auth_headers(owner),
+            json={"role_id": str(owner_role_id), "permission_type": "manage"},
+        ).status_code
+        == 201
+    )
 
     hidden_after_acl = client.get(
         "/api/v1/documents/expiring",
@@ -1660,11 +1693,14 @@ def test_b55_document_timeline_reuses_audit_read_permission(
         label="NoAuditViewer",
     )
     document = create_document_via_api(client, owner, company_a)
-    assert client.patch(
-        f"/api/v1/documents/{document['id']}/metadata",
-        headers=auth_headers(owner),
-        json={"description": "Timeline change"},
-    ).status_code == 200
+    assert (
+        client.patch(
+            f"/api/v1/documents/{document['id']}/metadata",
+            headers=auth_headers(owner),
+            json={"description": "Timeline change"},
+        ).status_code
+        == 200
+    )
 
     timeline = client.get(
         f"/api/v1/documents/{document['id']}/timeline",

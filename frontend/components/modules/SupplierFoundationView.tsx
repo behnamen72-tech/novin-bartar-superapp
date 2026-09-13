@@ -342,7 +342,7 @@ export function SupplierFoundationView() {
     } catch (error) { setNotice({ tone: "error", text: errorText(error) }); } finally { setBusy(false); }
   }
 
-  if (loading) return <AsyncState title="در حال آماده‌سازی تأمین‌کنندگان..." />;
+  if (loading) return <AsyncState label="در حال آماده‌سازی تأمین‌کنندگان..." />;
 
   return (
     <section className="crm-view" dir="rtl">

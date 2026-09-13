@@ -154,8 +154,13 @@ def test_read_unread_and_unread_count_are_recipient_scoped(
     )
     assert read.status_code == 200
     assert read.json()["read_at"] is not None
-    assert client.get("/api/v1/notifications?unread_only=true", headers=_headers(first_id)).json() == []
-    assert client.get("/api/v1/notifications/unread-count", headers=_headers(first_id)).json() == {"unread_count": 0}
+    assert (
+        client.get("/api/v1/notifications?unread_only=true", headers=_headers(first_id)).json()
+        == []
+    )
+    assert client.get("/api/v1/notifications/unread-count", headers=_headers(first_id)).json() == {
+        "unread_count": 0
+    }
 
     unread = client.post(
         f"/api/v1/notifications/{first_notification_id}/unread",
@@ -189,8 +194,12 @@ def test_mark_all_read_only_updates_current_recipient(
     response = client.post("/api/v1/notifications/read-all", headers=_headers(first_id))
     assert response.status_code == 200
     assert response.json() == {"marked_read": 2}
-    assert client.get("/api/v1/notifications/unread-count", headers=_headers(first_id)).json() == {"unread_count": 0}
-    assert client.get("/api/v1/notifications/unread-count", headers=_headers(second_id)).json() == {"unread_count": 1}
+    assert client.get("/api/v1/notifications/unread-count", headers=_headers(first_id)).json() == {
+        "unread_count": 0
+    }
+    assert client.get("/api/v1/notifications/unread-count", headers=_headers(second_id)).json() == {
+        "unread_count": 1
+    }
 
 
 def test_internal_creation_is_idempotent_and_transactional(
@@ -226,7 +235,10 @@ def test_internal_creation_is_idempotent_and_transactional(
         session.rollback()
 
     with notification_db() as session:
-        assert session.scalar(select(Notification.id).where(Notification.recipient_user_id == user_id)) is None
+        assert (
+            session.scalar(select(Notification.id).where(Notification.recipient_user_id == user_id))
+            is None
+        )
 
 
 def test_notification_content_is_immutable_but_read_state_can_change(

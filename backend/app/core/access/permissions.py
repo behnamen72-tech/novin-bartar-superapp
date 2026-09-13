@@ -23,10 +23,30 @@ CORE_PERMISSION_DEFINITIONS: tuple[tuple[str, str, str], ...] = (
     (USERS_MANAGE, "Manage users", "Create, activate, deactivate, or update system users."),
     (ACCESS_READ, "Read access", "View roles, permissions, and access assignments."),
     (ACCESS_MANAGE, "Manage access", "Manage roles, permissions, and access assignments."),
-    (AUDIT_READ, "Read audit history", "View immutable audit events within authorized organization scope."),
+    (
+        AUDIT_READ,
+        "Read audit history",
+        "View immutable audit events within authorized organization scope.",
+    ),
     (DOCUMENTS_READ, "Read documents", "View documents within authorized organization scope."),
-    (DOCUMENTS_MANAGE, "Manage documents", "Create and manage documents within authorized organization scope."),
-    (WORKFLOW_READ, "Read workflows", "View workflow definitions and instances within authorized organization scope."),
-    (WORKFLOW_MANAGE, "Manage workflows", "Create, version, publish, and retire workflow definitions within authorized scope."),
-    (WORKFLOW_EXECUTE, "Execute workflows", "Start and advance workflow instances within authorized organization scope."),
+    (
+        DOCUMENTS_MANAGE,
+        "Manage documents",
+        "Create and manage documents within authorized organization scope.",
+    ),
+    (
+        WORKFLOW_READ,
+        "Read workflows",
+        "View workflow definitions and instances within authorized organization scope.",
+    ),
+    (
+        WORKFLOW_MANAGE,
+        "Manage workflows",
+        "Create, version, publish, and retire workflow definitions within authorized scope.",
+    ),
+    (
+        WORKFLOW_EXECUTE,
+        "Execute workflows",
+        "Start and advance workflow instances within authorized organization scope.",
+    ),
 )

@@ -34,9 +34,7 @@ class OrganizationValidationError(ValueError):
 
 def _get_locked_organization(session: Session, organization_id: UUID) -> Organization:
     organization = session.scalar(
-        select(Organization)
-        .where(Organization.id == organization_id)
-        .with_for_update()
+        select(Organization).where(Organization.id == organization_id).with_for_update()
     )
     if organization is None:
         raise OrganizationNotFoundError("Organization not found.")

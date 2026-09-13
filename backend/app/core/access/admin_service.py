@@ -60,7 +60,9 @@ def _role_statement(role_id: UUID, *, for_update: bool = False):
             selectinload(Role.organization),
             selectinload(Role.permission_links).selectinload(RolePermission.permission),
             selectinload(Role.user_assignments).selectinload(UserRoleAssignment.organization),
-            selectinload(Role.user_assignments).selectinload(UserRoleAssignment.user).selectinload(User.person),
+            selectinload(Role.user_assignments)
+            .selectinload(UserRoleAssignment.user)
+            .selectinload(User.person),
         )
     )
     if for_update:
@@ -101,11 +103,7 @@ def _get_assignment(
 
 
 def _role_permission_codes(role: Role) -> set[str]:
-    return {
-        link.permission.code
-        for link in role.permission_links
-        if link.permission.is_active
-    }
+    return {link.permission.code for link in role.permission_links if link.permission.is_active}
 
 
 def _assignment_is_current_at_root(
@@ -302,8 +300,7 @@ def list_access_overview(
                 user_id=assignment.user_id,
                 user_email=assignment.user.email,
                 user_name=(
-                    f"{assignment.user.person.first_name} "
-                    f"{assignment.user.person.last_name}"
+                    f"{assignment.user.person.first_name} {assignment.user.person.last_name}"
                 ).strip(),
                 role_code=assignment.role.code,
                 role_name=assignment.role.name,
@@ -544,11 +541,7 @@ def revoke_permission_from_role(
     )
     normalized_code = permission_code.strip().lower()
     link = next(
-        (
-            item
-            for item in role.permission_links
-            if item.permission.code == normalized_code
-        ),
+        (item for item in role.permission_links if item.permission.code == normalized_code),
         None,
     )
     if link is None:
@@ -719,9 +712,15 @@ def change_access_assignment_status(
             scope_mode=OrganizationScopeMode.SELF_AND_DESCENDANTS,
             target_organization_id=assignment.organization_id,
         ):
-            raise AccessAdminConflictError("Role ownership no longer covers the assignment organization.")
+            raise AccessAdminConflictError(
+                "Role ownership no longer covers the assignment organization."
+            )
 
-    if not payload.is_active and ACCESS_MANAGE in role_permissions and _assignment_is_current_at_root(session, assignment):
+    if (
+        not payload.is_active
+        and ACCESS_MANAGE in role_permissions
+        and _assignment_is_current_at_root(session, assignment)
+    ):
         _ensure_access_manager_survives(
             session,
             organization_ids=covered_ids,

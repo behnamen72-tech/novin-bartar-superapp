@@ -77,7 +77,13 @@ def create_user_endpoint(
             target_user_id=user.id,
             permission_code=USERS_MANAGE,
         )
-    except (AuthorizationError, UserAdminNotFoundError, UserAdminConflictError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        UserAdminNotFoundError,
+        UserAdminConflictError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
@@ -97,7 +103,13 @@ def update_user_endpoint(
             target_user_id=user.id,
             permission_code=USERS_MANAGE,
         )
-    except (AuthorizationError, UserAdminNotFoundError, UserAdminConflictError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        UserAdminNotFoundError,
+        UserAdminConflictError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
@@ -110,14 +122,22 @@ def change_user_status_endpoint(
     session: Annotated[Session, Depends(get_db)],
 ) -> UserListItem:
     try:
-        user = change_user_status(session, actor=current_user, target_user_id=user_id, payload=payload)
+        user = change_user_status(
+            session, actor=current_user, target_user_id=user_id, payload=payload
+        )
         return get_user_for_viewer(
             session,
             viewer_user_id=current_user.id,
             target_user_id=user.id,
             permission_code=USERS_MANAGE,
         )
-    except (AuthorizationError, UserAdminNotFoundError, UserAdminConflictError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        UserAdminNotFoundError,
+        UserAdminConflictError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
 
@@ -131,7 +151,13 @@ def reset_user_password_endpoint(
 ) -> Response:
     try:
         reset_user_password(session, actor=current_user, target_user_id=user_id, payload=payload)
-    except (AuthorizationError, UserAdminNotFoundError, UserAdminConflictError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        UserAdminNotFoundError,
+        UserAdminConflictError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return Response(status_code=status.HTTP_204_NO_CONTENT)

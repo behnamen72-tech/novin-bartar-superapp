@@ -84,7 +84,9 @@ def _seed_user(
     scope_mode: OrganizationScopeMode = OrganizationScopeMode.SELF,
     label: str = "Actor",
 ) -> User:
-    person = Person(first_name=label, last_name="User", email=f"{label.lower()}-{uuid4()}@test.local")
+    person = Person(
+        first_name=label, last_name="User", email=f"{label.lower()}-{uuid4()}@test.local"
+    )
     session.add(person)
     session.flush()
     session.add(
@@ -119,10 +121,27 @@ def _seed_user(
 
 def _seed_tree(factory: sessionmaker[Session]):
     with factory() as session:
-        holding = Organization(name="Holding", code=f"H-{uuid4()}", organization_type=OrganizationType.HOLDING)
-        company_a = Organization(name="Company A", code=f"A-{uuid4()}", organization_type=OrganizationType.COMPANY, parent=holding)
-        branch_a = Organization(name="Branch A", code=f"BA-{uuid4()}", organization_type=OrganizationType.BRANCH, parent=company_a)
-        company_b = Organization(name="Company B", code=f"B-{uuid4()}", organization_type=OrganizationType.COMPANY, parent=holding)
+        holding = Organization(
+            name="Holding", code=f"H-{uuid4()}", organization_type=OrganizationType.HOLDING
+        )
+        company_a = Organization(
+            name="Company A",
+            code=f"A-{uuid4()}",
+            organization_type=OrganizationType.COMPANY,
+            parent=holding,
+        )
+        branch_a = Organization(
+            name="Branch A",
+            code=f"BA-{uuid4()}",
+            organization_type=OrganizationType.BRANCH,
+            parent=company_a,
+        )
+        company_b = Organization(
+            name="Company B",
+            code=f"B-{uuid4()}",
+            organization_type=OrganizationType.COMPANY,
+            parent=holding,
+        )
         session.add_all([holding, company_a, branch_a, company_b])
         session.flush()
         admin = _seed_user(
@@ -142,7 +161,9 @@ def _seed_tree(factory: sessionmaker[Session]):
         return admin.id, outsider.id, holding.id, company_a.id, branch_a.id, company_b.id
 
 
-def _create_definition(client: TestClient, actor_id, organization_id, *, scope_mode: str = "self_and_descendants") -> dict:
+def _create_definition(
+    client: TestClient, actor_id, organization_id, *, scope_mode: str = "self_and_descendants"
+) -> dict:
     response = client.post(
         "/api/v1/workflow/definitions",
         headers=headers(actor_id),
@@ -157,7 +178,15 @@ def _create_definition(client: TestClient, actor_id, organization_id, *, scope_m
     return response.json()
 
 
-def _add_state(client: TestClient, actor_id, definition_id, *, code: str, initial: bool = False, terminal: bool = False) -> dict:
+def _add_state(
+    client: TestClient,
+    actor_id,
+    definition_id,
+    *,
+    code: str,
+    initial: bool = False,
+    terminal: bool = False,
+) -> dict:
     response = client.post(
         f"/api/v1/workflow/definitions/{definition_id}/states",
         headers=headers(actor_id),
@@ -167,7 +196,9 @@ def _add_state(client: TestClient, actor_id, definition_id, *, code: str, initia
     return response.json()
 
 
-def _publish_two_state_workflow(client: TestClient, actor_id, organization_id, *, scope_mode: str = "self_and_descendants") -> dict:
+def _publish_two_state_workflow(
+    client: TestClient, actor_id, organization_id, *, scope_mode: str = "self_and_descendants"
+) -> dict:
     definition = _create_definition(client, actor_id, organization_id, scope_mode=scope_mode)
     definition = _add_state(client, actor_id, definition["id"], code="draft", initial=True)
     definition = _add_state(client, actor_id, definition["id"], code="approved", terminal=True)
@@ -192,7 +223,9 @@ def _publish_two_state_workflow(client: TestClient, actor_id, organization_id, *
     return response.json()
 
 
-def test_workflow_definition_create_is_permissioned_and_audited(client: TestClient, workflow_db: sessionmaker[Session]) -> None:
+def test_workflow_definition_create_is_permissioned_and_audited(
+    client: TestClient, workflow_db: sessionmaker[Session]
+) -> None:
     admin_id, _, holding_id, _, _, _ = _seed_tree(workflow_db)
     definition = _create_definition(client, admin_id, holding_id)
     assert definition["version"] == 1
@@ -209,7 +242,9 @@ def test_workflow_definition_create_is_permissioned_and_audited(client: TestClie
         assert audit.organization_id == holding_id
 
 
-def test_publish_rejects_invalid_definition(client: TestClient, workflow_db: sessionmaker[Session]) -> None:
+def test_publish_rejects_invalid_definition(
+    client: TestClient, workflow_db: sessionmaker[Session]
+) -> None:
     admin_id, _, holding_id, _, _, _ = _seed_tree(workflow_db)
     definition = _create_definition(client, admin_id, holding_id)
     response = client.post(
@@ -220,7 +255,9 @@ def test_publish_rejects_invalid_definition(client: TestClient, workflow_db: ses
     assert "initial state" in response.json()["detail"].lower()
 
 
-def test_published_workflow_runs_to_completion_with_immutable_history(client: TestClient, workflow_db: sessionmaker[Session]) -> None:
+def test_published_workflow_runs_to_completion_with_immutable_history(
+    client: TestClient, workflow_db: sessionmaker[Session]
+) -> None:
     admin_id, _, holding_id, _, branch_id, _ = _seed_tree(workflow_db)
     definition = _publish_two_state_workflow(client, admin_id, holding_id)
     transition_id = definition["transitions"][0]["id"]
@@ -256,7 +293,9 @@ def test_published_workflow_runs_to_completion_with_immutable_history(client: Te
             session.flush()
 
 
-def test_self_scoped_definition_cannot_run_in_descendant(client: TestClient, workflow_db: sessionmaker[Session]) -> None:
+def test_self_scoped_definition_cannot_run_in_descendant(
+    client: TestClient, workflow_db: sessionmaker[Session]
+) -> None:
     admin_id, _, holding_id, _, branch_id, _ = _seed_tree(workflow_db)
     definition = _publish_two_state_workflow(client, admin_id, holding_id, scope_mode="self")
     response = client.post(
@@ -272,7 +311,9 @@ def test_self_scoped_definition_cannot_run_in_descendant(client: TestClient, wor
     assert response.status_code == 404
 
 
-def test_cross_company_user_cannot_discover_or_start_definition(client: TestClient, workflow_db: sessionmaker[Session]) -> None:
+def test_cross_company_user_cannot_discover_or_start_definition(
+    client: TestClient, workflow_db: sessionmaker[Session]
+) -> None:
     admin_id, outsider_id, holding_id, company_a_id, _, company_b_id = _seed_tree(workflow_db)
     definition = _publish_two_state_workflow(client, admin_id, company_a_id)
 
@@ -295,7 +336,9 @@ def test_cross_company_user_cannot_discover_or_start_definition(client: TestClie
     assert start_response.status_code == 404
 
 
-def test_published_definition_is_immutable_and_new_version_is_draft_copy(client: TestClient, workflow_db: sessionmaker[Session]) -> None:
+def test_published_definition_is_immutable_and_new_version_is_draft_copy(
+    client: TestClient, workflow_db: sessionmaker[Session]
+) -> None:
     admin_id, _, holding_id, _, _, _ = _seed_tree(workflow_db)
     definition = _publish_two_state_workflow(client, admin_id, holding_id)
 
@@ -318,7 +361,9 @@ def test_published_definition_is_immutable_and_new_version_is_draft_copy(client:
     assert {t["code"] for t in payload["transitions"]} == {"approve"}
 
 
-def test_publishing_new_version_retires_previous_version(client: TestClient, workflow_db: sessionmaker[Session]) -> None:
+def test_publishing_new_version_retires_previous_version(
+    client: TestClient, workflow_db: sessionmaker[Session]
+) -> None:
     admin_id, _, holding_id, _, _, _ = _seed_tree(workflow_db)
     first = _publish_two_state_workflow(client, admin_id, holding_id)
     clone = client.post(
@@ -336,12 +381,16 @@ def test_publishing_new_version_retires_previous_version(client: TestClient, wor
         headers=headers(admin_id),
     )
     assert old.status_code == 200
-    by_version = {item["version"]: item["status"] for item in old.json() if item["code"] == "approval"}
+    by_version = {
+        item["version"]: item["status"] for item in old.json() if item["code"] == "approval"
+    }
     assert by_version[1] == "retired"
     assert by_version[2] == "published"
 
 
-def test_wrong_transition_is_rejected_without_history(client: TestClient, workflow_db: sessionmaker[Session]) -> None:
+def test_wrong_transition_is_rejected_without_history(
+    client: TestClient, workflow_db: sessionmaker[Session]
+) -> None:
     admin_id, _, holding_id, _, _, _ = _seed_tree(workflow_db)
     definition = _publish_two_state_workflow(client, admin_id, holding_id)
     start = client.post(
@@ -364,7 +413,9 @@ def test_wrong_transition_is_rejected_without_history(client: TestClient, workfl
         assert session.scalar(select(WorkflowTransitionRecord.id).limit(1)) is None
 
 
-def test_active_instance_can_cancel_but_completed_cannot(client: TestClient, workflow_db: sessionmaker[Session]) -> None:
+def test_active_instance_can_cancel_but_completed_cannot(
+    client: TestClient, workflow_db: sessionmaker[Session]
+) -> None:
     admin_id, _, holding_id, _, _, _ = _seed_tree(workflow_db)
     definition = _publish_two_state_workflow(client, admin_id, holding_id)
     transition_id = definition["transitions"][0]["id"]
@@ -372,27 +423,43 @@ def test_active_instance_can_cancel_but_completed_cannot(client: TestClient, wor
     active = client.post(
         "/api/v1/workflow/instances",
         headers=headers(admin_id),
-        json={"definition_id": definition["id"], "organization_id": str(holding_id), "resource_type": "task", "resource_id": "one"},
+        json={
+            "definition_id": definition["id"],
+            "organization_id": str(holding_id),
+            "resource_type": "task",
+            "resource_id": "one",
+        },
     ).json()
-    cancelled = client.post(f"/api/v1/workflow/instances/{active['id']}/cancel", headers=headers(admin_id))
+    cancelled = client.post(
+        f"/api/v1/workflow/instances/{active['id']}/cancel", headers=headers(admin_id)
+    )
     assert cancelled.status_code == 200
     assert cancelled.json()["status"] == "cancelled"
 
     second = client.post(
         "/api/v1/workflow/instances",
         headers=headers(admin_id),
-        json={"definition_id": definition["id"], "organization_id": str(holding_id), "resource_type": "task", "resource_id": "two"},
+        json={
+            "definition_id": definition["id"],
+            "organization_id": str(holding_id),
+            "resource_type": "task",
+            "resource_id": "two",
+        },
     ).json()
     client.post(
         f"/api/v1/workflow/instances/{second['id']}/transition",
         headers=headers(admin_id),
         json={"transition_id": transition_id},
     )
-    response = client.post(f"/api/v1/workflow/instances/{second['id']}/cancel", headers=headers(admin_id))
+    response = client.post(
+        f"/api/v1/workflow/instances/{second['id']}/cancel", headers=headers(admin_id)
+    )
     assert response.status_code == 409
 
 
-def test_workflow_write_endpoints_require_authentication(client: TestClient, workflow_db: sessionmaker[Session]) -> None:
+def test_workflow_write_endpoints_require_authentication(
+    client: TestClient, workflow_db: sessionmaker[Session]
+) -> None:
     _, _, holding_id, _, _, _ = _seed_tree(workflow_db)
     response = client.post(
         "/api/v1/workflow/definitions",
@@ -401,7 +468,9 @@ def test_workflow_write_endpoints_require_authentication(client: TestClient, wor
     assert response.status_code == 401
 
 
-def test_publish_rejects_unreachable_or_dead_end_states(client: TestClient, workflow_db: sessionmaker[Session]) -> None:
+def test_publish_rejects_unreachable_or_dead_end_states(
+    client: TestClient, workflow_db: sessionmaker[Session]
+) -> None:
     admin_id, _, holding_id, _, _, _ = _seed_tree(workflow_db)
     definition = _create_definition(client, admin_id, holding_id)
     definition = _add_state(client, admin_id, definition["id"], code="start", initial=True)
@@ -430,7 +499,9 @@ def test_publish_rejects_unreachable_or_dead_end_states(client: TestClient, work
 def test_workflow_organizations_expose_only_effective_capabilities(
     client: TestClient, workflow_db: sessionmaker[Session]
 ) -> None:
-    admin_id, outsider_id, holding_id, company_a_id, branch_a_id, company_b_id = _seed_tree(workflow_db)
+    admin_id, outsider_id, holding_id, company_a_id, branch_a_id, company_b_id = _seed_tree(
+        workflow_db
+    )
 
     admin_response = client.get(
         "/api/v1/workflow/organizations",

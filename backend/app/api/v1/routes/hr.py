@@ -102,7 +102,14 @@ def create_hr_job_profile(
 ) -> HRJobProfileResponse:
     try:
         item = create_job_profile(session, actor=current_user, payload=payload)
-    except (AuthorizationError, HRNotFoundError, HRConflictError, HRValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        HRNotFoundError,
+        HRConflictError,
+        HRValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return HRJobProfileResponse.model_validate(item)
@@ -122,7 +129,14 @@ def patch_hr_job_profile(
             profile_id=profile_id,
             payload=payload,
         )
-    except (AuthorizationError, HRNotFoundError, HRConflictError, HRValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        HRNotFoundError,
+        HRConflictError,
+        HRValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return HRJobProfileResponse.model_validate(item)
@@ -142,7 +156,14 @@ def set_hr_job_profile_status(
             profile_id=profile_id,
             payload=payload,
         )
-    except (AuthorizationError, HRNotFoundError, HRConflictError, HRValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        HRNotFoundError,
+        HRConflictError,
+        HRValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return HRJobProfileResponse.model_validate(item)
@@ -179,7 +200,14 @@ def create_hr_position(
 ) -> HRPositionResponse:
     try:
         item = create_position(session, actor=current_user, payload=payload)
-    except (AuthorizationError, HRNotFoundError, HRConflictError, HRValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        HRNotFoundError,
+        HRConflictError,
+        HRValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return HRPositionResponse.model_validate(item)
@@ -199,7 +227,14 @@ def patch_hr_position(
             position_id=position_id,
             payload=payload,
         )
-    except (AuthorizationError, HRNotFoundError, HRConflictError, HRValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        HRNotFoundError,
+        HRConflictError,
+        HRValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return HRPositionResponse.model_validate(item)
@@ -219,7 +254,14 @@ def set_hr_position_status(
             position_id=position_id,
             payload=payload,
         )
-    except (AuthorizationError, HRNotFoundError, HRConflictError, HRValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        HRNotFoundError,
+        HRConflictError,
+        HRValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return HRPositionResponse.model_validate(item)
@@ -273,7 +315,14 @@ def create_hr_employment(
 ) -> HREmploymentResponse:
     try:
         item = create_employment(session, actor=current_user, payload=payload)
-    except (AuthorizationError, HRNotFoundError, HRConflictError, HRValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        HRNotFoundError,
+        HRConflictError,
+        HRValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return HREmploymentResponse.model_validate(item)
@@ -293,7 +342,14 @@ def patch_hr_employment(
             employment_id=employment_id,
             payload=payload,
         )
-    except (AuthorizationError, HRNotFoundError, HRConflictError, HRValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        HRNotFoundError,
+        HRConflictError,
+        HRValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return HREmploymentResponse.model_validate(item)
@@ -313,7 +369,14 @@ def set_hr_employment_status(
             employment_id=employment_id,
             payload=payload,
         )
-    except (AuthorizationError, HRNotFoundError, HRConflictError, HRValidationError, ValueError, IntegrityError) as exc:
+    except (
+        AuthorizationError,
+        HRNotFoundError,
+        HRConflictError,
+        HRValidationError,
+        ValueError,
+        IntegrityError,
+    ) as exc:
         session.rollback()
         raise _translate_error(exc) from exc
     return HREmploymentResponse.model_validate(item)

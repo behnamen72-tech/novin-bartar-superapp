@@ -73,9 +73,7 @@ class RolePermission(TimestampMixin, Base):
     )
 
     role: Mapped[Role] = relationship("Role", back_populates="permission_links")
-    permission: Mapped[Permission] = relationship(
-        "Permission", back_populates="role_links"
-    )
+    permission: Mapped[Permission] = relationship("Permission", back_populates="role_links")
 
 
 class UserRoleAssignment(UUIDPrimaryKeyMixin, TimestampMixin, Base):

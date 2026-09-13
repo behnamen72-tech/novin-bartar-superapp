@@ -246,26 +246,48 @@ def test_self_only_organization_manager_cannot_create_child(
     write_db: sessionmaker[Session],
 ) -> None:
     with write_db() as session:
-        holding = Organization(name="Holding", code=f"H-{uuid4()}", organization_type=OrganizationType.HOLDING)
+        holding = Organization(
+            name="Holding", code=f"H-{uuid4()}", organization_type=OrganizationType.HOLDING
+        )
         person = Person(first_name="Self", last_name="Manager", email=f"self-{uuid4()}@test.local")
-        user = User(person=person, email=person.email or "self@test.local", password_hash=hash_password("Self-password-123!"))
-        role = _add_role(session, code=f"self-role-{uuid4()}", permission_codes=(ORGANIZATION_MANAGE,))
-        session.add_all([
-            holding,
-            person,
-            UserRoleAssignment(user=user, role=role, organization=holding, scope_mode=OrganizationScopeMode.SELF),
-        ])
+        user = User(
+            person=person,
+            email=person.email or "self@test.local",
+            password_hash=hash_password("Self-password-123!"),
+        )
+        role = _add_role(
+            session, code=f"self-role-{uuid4()}", permission_codes=(ORGANIZATION_MANAGE,)
+        )
+        session.add_all(
+            [
+                holding,
+                person,
+                UserRoleAssignment(
+                    user=user,
+                    role=role,
+                    organization=holding,
+                    scope_mode=OrganizationScopeMode.SELF,
+                ),
+            ]
+        )
         session.commit()
         user_id, holding_id = user.id, holding.id
 
     response = client.post(
         "/api/v1/organizations",
         headers=auth_headers(user_id),
-        json={"name": "Denied", "code": "DENIED-CHILD", "organization_type": "company", "parent_id": str(holding_id)},
+        json={
+            "name": "Denied",
+            "code": "DENIED-CHILD",
+            "organization_type": "company",
+            "parent_id": str(holding_id),
+        },
     )
     assert response.status_code == 403
     with write_db() as session:
-        assert session.scalar(select(Organization).where(Organization.code == "DENIED-CHILD")) is None
+        assert (
+            session.scalar(select(Organization).where(Organization.code == "DENIED-CHILD")) is None
+        )
 
 
 def test_organization_write_rolls_back_when_audit_fails(
@@ -282,11 +304,18 @@ def test_organization_write_rolls_back_when_audit_fails(
     response = client.post(
         "/api/v1/organizations",
         headers=auth_headers(actor_id),
-        json={"name": "Rollback Co", "code": "ROLLBACK-CO", "organization_type": "company", "parent_id": str(holding_id)},
+        json={
+            "name": "Rollback Co",
+            "code": "ROLLBACK-CO",
+            "organization_type": "company",
+            "parent_id": str(holding_id),
+        },
     )
     assert response.status_code == 500
     with write_db() as session:
-        assert session.scalar(select(Organization).where(Organization.code == "ROLLBACK-CO")) is None
+        assert (
+            session.scalar(select(Organization).where(Organization.code == "ROLLBACK-CO")) is None
+        )
 
 
 def test_parent_with_active_child_cannot_be_deactivated(
@@ -341,19 +370,38 @@ def test_shared_person_update_requires_manage_across_all_active_relationships(
         company_b = session.get(Organization, company_b_id)
         assert company_a and company_b
         actor_person = Person(first_name="A", last_name="Admin", email=f"a-{uuid4()}@test.local")
-        actor = User(person=actor_person, email=actor_person.email or "a@test.local", password_hash=hash_password("Actor-password-123!"))
-        actor_rel = PersonOrganizationRelationship(person=actor_person, organization=company_a, relationship_code="manager")
+        actor = User(
+            person=actor_person,
+            email=actor_person.email or "a@test.local",
+            password_hash=hash_password("Actor-password-123!"),
+        )
+        actor_rel = PersonOrganizationRelationship(
+            person=actor_person, organization=company_a, relationship_code="manager"
+        )
         actor_role = _add_role(session, code=f"pm-{uuid4()}", permission_codes=(PEOPLE_MANAGE,))
-        target = Person(first_name="Shared", last_name="Person", email=f"shared-{uuid4()}@test.local")
-        session.add_all([
-            actor_person,
-            actor,
-            actor_rel,
-            UserRoleAssignment(user=actor, role=actor_role, organization=company_a, scope_mode=OrganizationScopeMode.SELF),
-            target,
-            PersonOrganizationRelationship(person=target, organization=company_a, relationship_code="employee"),
-            PersonOrganizationRelationship(person=target, organization=company_b, relationship_code="contractor"),
-        ])
+        target = Person(
+            first_name="Shared", last_name="Person", email=f"shared-{uuid4()}@test.local"
+        )
+        session.add_all(
+            [
+                actor_person,
+                actor,
+                actor_rel,
+                UserRoleAssignment(
+                    user=actor,
+                    role=actor_role,
+                    organization=company_a,
+                    scope_mode=OrganizationScopeMode.SELF,
+                ),
+                target,
+                PersonOrganizationRelationship(
+                    person=target, organization=company_a, relationship_code="employee"
+                ),
+                PersonOrganizationRelationship(
+                    person=target, organization=company_b, relationship_code="contractor"
+                ),
+            ]
+        )
         session.commit()
         actor_id, target_id = actor.id, target.id
 
@@ -389,9 +437,13 @@ def test_user_create_hashes_password_and_never_audits_plaintext(
         assert user is not None
         assert user.password_hash != password
         assert verify_password(password, user.password_hash)
-        events = list(session.scalars(select(AuditEvent).where(AuditEvent.resource_id == str(user.id))).all())
+        events = list(
+            session.scalars(select(AuditEvent).where(AuditEvent.resource_id == str(user.id))).all()
+        )
         assert events
-        serialized = repr([(event.before_state, event.after_state, event.event_metadata) for event in events])
+        serialized = repr(
+            [(event.before_state, event.after_state, event.event_metadata) for event in events]
+        )
         assert password not in serialized
         assert user.password_hash not in serialized
 
@@ -401,24 +453,63 @@ def test_identity_admin_cannot_mutate_user_with_permissions_actor_does_not_own(
     write_db: sessionmaker[Session],
 ) -> None:
     with write_db() as session:
-        company = Organization(name="Company", code=f"C-{uuid4()}", organization_type=OrganizationType.COMPANY, parent=Organization(name="Holding", code=f"H-{uuid4()}", organization_type=OrganizationType.HOLDING))
-        actor_person = Person(first_name="Limited", last_name="Admin", email=f"limited-{uuid4()}@test.local")
-        actor = User(person=actor_person, email=actor_person.email or "limited@test.local", password_hash=hash_password("Limited-password-123!"))
-        target_person = Person(first_name="Privileged", last_name="User", email=f"priv-{uuid4()}@test.local")
-        target = User(person=target_person, email=target_person.email or "priv@test.local", password_hash=hash_password("Priv-password-123!"))
-        actor_role = _add_role(session, code=f"limited-{uuid4()}", permission_codes=(USERS_MANAGE, ACCESS_MANAGE))
-        target_role = _add_role(session, code=f"target-{uuid4()}", permission_codes=(DOCUMENTS_MANAGE,))
-        session.add_all([
-            company,
-            actor_person,
-            actor,
-            target_person,
-            target,
-            PersonOrganizationRelationship(person=actor_person, organization=company, relationship_code="manager"),
-            PersonOrganizationRelationship(person=target_person, organization=company, relationship_code="employee"),
-            UserRoleAssignment(user=actor, role=actor_role, organization=company, scope_mode=OrganizationScopeMode.SELF),
-            UserRoleAssignment(user=target, role=target_role, organization=company, scope_mode=OrganizationScopeMode.SELF),
-        ])
+        company = Organization(
+            name="Company",
+            code=f"C-{uuid4()}",
+            organization_type=OrganizationType.COMPANY,
+            parent=Organization(
+                name="Holding", code=f"H-{uuid4()}", organization_type=OrganizationType.HOLDING
+            ),
+        )
+        actor_person = Person(
+            first_name="Limited", last_name="Admin", email=f"limited-{uuid4()}@test.local"
+        )
+        actor = User(
+            person=actor_person,
+            email=actor_person.email or "limited@test.local",
+            password_hash=hash_password("Limited-password-123!"),
+        )
+        target_person = Person(
+            first_name="Privileged", last_name="User", email=f"priv-{uuid4()}@test.local"
+        )
+        target = User(
+            person=target_person,
+            email=target_person.email or "priv@test.local",
+            password_hash=hash_password("Priv-password-123!"),
+        )
+        actor_role = _add_role(
+            session, code=f"limited-{uuid4()}", permission_codes=(USERS_MANAGE, ACCESS_MANAGE)
+        )
+        target_role = _add_role(
+            session, code=f"target-{uuid4()}", permission_codes=(DOCUMENTS_MANAGE,)
+        )
+        session.add_all(
+            [
+                company,
+                actor_person,
+                actor,
+                target_person,
+                target,
+                PersonOrganizationRelationship(
+                    person=actor_person, organization=company, relationship_code="manager"
+                ),
+                PersonOrganizationRelationship(
+                    person=target_person, organization=company, relationship_code="employee"
+                ),
+                UserRoleAssignment(
+                    user=actor,
+                    role=actor_role,
+                    organization=company,
+                    scope_mode=OrganizationScopeMode.SELF,
+                ),
+                UserRoleAssignment(
+                    user=target,
+                    role=target_role,
+                    organization=company,
+                    scope_mode=OrganizationScopeMode.SELF,
+                ),
+            ]
+        )
         session.commit()
         actor_id, target_id = actor.id, target.id
 
@@ -438,7 +529,11 @@ def test_custom_role_permission_grant_is_capability_bounded(
     created = client.post(
         "/api/v1/access/roles",
         headers=auth_headers(actor_id),
-        json={"organization_id": str(company_a_id), "code": "company_operator", "name": "Company Operator"},
+        json={
+            "organization_id": str(company_a_id),
+            "code": "company_operator",
+            "name": "Company Operator",
+        },
     )
     assert created.status_code == 201, created.text
     role_id = created.json()["id"]
@@ -452,15 +547,32 @@ def test_custom_role_permission_grant_is_capability_bounded(
     with write_db() as session:
         company = session.get(Organization, company_a_id)
         assert company is not None
-        limited_person = Person(first_name="Access", last_name="Manager", email=f"am-{uuid4()}@test.local")
-        limited = User(person=limited_person, email=limited_person.email or "am@test.local", password_hash=hash_password("Access-password-123!"))
-        limited_role = _add_role(session, code=f"access-only-{uuid4()}", permission_codes=(ACCESS_MANAGE, ACCESS_READ))
-        session.add_all([
-            limited_person,
-            limited,
-            PersonOrganizationRelationship(person=limited_person, organization=company, relationship_code="manager"),
-            UserRoleAssignment(user=limited, role=limited_role, organization=company, scope_mode=OrganizationScopeMode.SELF),
-        ])
+        limited_person = Person(
+            first_name="Access", last_name="Manager", email=f"am-{uuid4()}@test.local"
+        )
+        limited = User(
+            person=limited_person,
+            email=limited_person.email or "am@test.local",
+            password_hash=hash_password("Access-password-123!"),
+        )
+        limited_role = _add_role(
+            session, code=f"access-only-{uuid4()}", permission_codes=(ACCESS_MANAGE, ACCESS_READ)
+        )
+        session.add_all(
+            [
+                limited_person,
+                limited,
+                PersonOrganizationRelationship(
+                    person=limited_person, organization=company, relationship_code="manager"
+                ),
+                UserRoleAssignment(
+                    user=limited,
+                    role=limited_role,
+                    organization=company,
+                    scope_mode=OrganizationScopeMode.SELF,
+                ),
+            ]
+        )
         session.commit()
         limited_id = limited.id
 
@@ -493,7 +605,11 @@ def test_role_assignment_is_scoped_and_audited(
     user_response = client.post(
         "/api/v1/users",
         headers=auth_headers(actor_id),
-        json={"person_id": str(person_id), "email": "assigned@example.test", "password": "Assigned-password-123!"},
+        json={
+            "person_id": str(person_id),
+            "email": "assigned@example.test",
+            "password": "Assigned-password-123!",
+        },
     )
     assert user_response.status_code == 201, user_response.text
     target_user_id = user_response.json()["id"]
@@ -501,14 +617,21 @@ def test_role_assignment_is_scoped_and_audited(
     role_response = client.post(
         "/api/v1/access/roles",
         headers=auth_headers(actor_id),
-        json={"organization_id": str(company_a_id), "code": "reader_custom", "name": "Reader Custom"},
+        json={
+            "organization_id": str(company_a_id),
+            "code": "reader_custom",
+            "name": "Reader Custom",
+        },
     )
     assert role_response.status_code == 201
     role_id = role_response.json()["id"]
-    assert client.post(
-        f"/api/v1/access/roles/{role_id}/permissions/{PEOPLE_READ}",
-        headers=auth_headers(actor_id),
-    ).status_code == 200
+    assert (
+        client.post(
+            f"/api/v1/access/roles/{role_id}/permissions/{PEOPLE_READ}",
+            headers=auth_headers(actor_id),
+        ).status_code
+        == 200
+    )
 
     assigned = client.post(
         "/api/v1/access/assignments",
@@ -540,21 +663,48 @@ def test_descendant_scope_assignment_requires_actor_authority_in_descendants(
     with write_db() as session:
         company = session.get(Organization, company_a_id)
         assert company is not None
-        actor_person = Person(first_name="Company", last_name="Admin", email=f"company-{uuid4()}@test.local")
-        actor = User(person=actor_person, email=actor_person.email or "company@test.local", password_hash=hash_password("Company-password-123!"))
-        target_person = Person(first_name="Target", last_name="User", email=f"target-{uuid4()}@test.local")
-        target = User(person=target_person, email=target_person.email or "target@test.local", password_hash=hash_password("Target-password-123!"))
-        actor_role = _add_role(session, code=f"self-manager-{uuid4()}", permission_codes=(ACCESS_MANAGE, PEOPLE_READ))
-        custom_role = _add_role(session, code=f"owned-{uuid4()}", permission_codes=(PEOPLE_READ,), organization=company)
-        session.add_all([
-            actor_person,
-            actor,
-            target_person,
-            target,
-            PersonOrganizationRelationship(person=actor_person, organization=company, relationship_code="manager"),
-            PersonOrganizationRelationship(person=target_person, organization=company, relationship_code="employee"),
-            UserRoleAssignment(user=actor, role=actor_role, organization=company, scope_mode=OrganizationScopeMode.SELF),
-        ])
+        actor_person = Person(
+            first_name="Company", last_name="Admin", email=f"company-{uuid4()}@test.local"
+        )
+        actor = User(
+            person=actor_person,
+            email=actor_person.email or "company@test.local",
+            password_hash=hash_password("Company-password-123!"),
+        )
+        target_person = Person(
+            first_name="Target", last_name="User", email=f"target-{uuid4()}@test.local"
+        )
+        target = User(
+            person=target_person,
+            email=target_person.email or "target@test.local",
+            password_hash=hash_password("Target-password-123!"),
+        )
+        actor_role = _add_role(
+            session, code=f"self-manager-{uuid4()}", permission_codes=(ACCESS_MANAGE, PEOPLE_READ)
+        )
+        custom_role = _add_role(
+            session, code=f"owned-{uuid4()}", permission_codes=(PEOPLE_READ,), organization=company
+        )
+        session.add_all(
+            [
+                actor_person,
+                actor,
+                target_person,
+                target,
+                PersonOrganizationRelationship(
+                    person=actor_person, organization=company, relationship_code="manager"
+                ),
+                PersonOrganizationRelationship(
+                    person=target_person, organization=company, relationship_code="employee"
+                ),
+                UserRoleAssignment(
+                    user=actor,
+                    role=actor_role,
+                    organization=company,
+                    scope_mode=OrganizationScopeMode.SELF,
+                ),
+            ]
+        )
         session.commit()
         actor_id, target_id, role_id = actor.id, target.id, custom_role.id
 
@@ -593,7 +743,11 @@ def test_password_reset_audit_contains_no_secret_material(
     created = client.post(
         "/api/v1/users",
         headers=auth_headers(actor_id),
-        json={"person_id": str(person_id), "email": "reset@example.test", "password": "Before-password-123!"},
+        json={
+            "person_id": str(person_id),
+            "email": "reset@example.test",
+            "password": "Before-password-123!",
+        },
     )
     assert created.status_code == 201
     user_id = created.json()["id"]
@@ -652,26 +806,67 @@ def test_people_manager_cannot_disable_person_linked_to_more_privileged_user(
     write_db: sessionmaker[Session],
 ) -> None:
     with write_db() as session:
-        holding = Organization(name="Holding", code=f"H-{uuid4()}", organization_type=OrganizationType.HOLDING)
-        company = Organization(name="Company", code=f"C-{uuid4()}", organization_type=OrganizationType.COMPANY, parent=holding)
-        actor_person = Person(first_name="People", last_name="Manager", email=f"people-{uuid4()}@test.local")
-        actor = User(person=actor_person, email=actor_person.email or "people@test.local", password_hash=hash_password("People-password-123!"))
-        target_person = Person(first_name="Privileged", last_name="Person", email=f"privp-{uuid4()}@test.local")
-        target_user = User(person=target_person, email=target_person.email or "privp@test.local", password_hash=hash_password("Privileged-password-123!"))
-        actor_role = _add_role(session, code=f"people-manager-{uuid4()}", permission_codes=(PEOPLE_MANAGE, ACCESS_MANAGE))
-        target_role = _add_role(session, code=f"priv-role-{uuid4()}", permission_codes=(DOCUMENTS_MANAGE,))
-        session.add_all([
-            holding,
-            company,
-            actor_person,
-            actor,
-            target_person,
-            target_user,
-            PersonOrganizationRelationship(person=actor_person, organization=company, relationship_code="manager"),
-            PersonOrganizationRelationship(person=target_person, organization=company, relationship_code="employee"),
-            UserRoleAssignment(user=actor, role=actor_role, organization=company, scope_mode=OrganizationScopeMode.SELF),
-            UserRoleAssignment(user=target_user, role=target_role, organization=company, scope_mode=OrganizationScopeMode.SELF),
-        ])
+        holding = Organization(
+            name="Holding", code=f"H-{uuid4()}", organization_type=OrganizationType.HOLDING
+        )
+        company = Organization(
+            name="Company",
+            code=f"C-{uuid4()}",
+            organization_type=OrganizationType.COMPANY,
+            parent=holding,
+        )
+        actor_person = Person(
+            first_name="People", last_name="Manager", email=f"people-{uuid4()}@test.local"
+        )
+        actor = User(
+            person=actor_person,
+            email=actor_person.email or "people@test.local",
+            password_hash=hash_password("People-password-123!"),
+        )
+        target_person = Person(
+            first_name="Privileged", last_name="Person", email=f"privp-{uuid4()}@test.local"
+        )
+        target_user = User(
+            person=target_person,
+            email=target_person.email or "privp@test.local",
+            password_hash=hash_password("Privileged-password-123!"),
+        )
+        actor_role = _add_role(
+            session,
+            code=f"people-manager-{uuid4()}",
+            permission_codes=(PEOPLE_MANAGE, ACCESS_MANAGE),
+        )
+        target_role = _add_role(
+            session, code=f"priv-role-{uuid4()}", permission_codes=(DOCUMENTS_MANAGE,)
+        )
+        session.add_all(
+            [
+                holding,
+                company,
+                actor_person,
+                actor,
+                target_person,
+                target_user,
+                PersonOrganizationRelationship(
+                    person=actor_person, organization=company, relationship_code="manager"
+                ),
+                PersonOrganizationRelationship(
+                    person=target_person, organization=company, relationship_code="employee"
+                ),
+                UserRoleAssignment(
+                    user=actor,
+                    role=actor_role,
+                    organization=company,
+                    scope_mode=OrganizationScopeMode.SELF,
+                ),
+                UserRoleAssignment(
+                    user=target_user,
+                    role=target_role,
+                    organization=company,
+                    scope_mode=OrganizationScopeMode.SELF,
+                ),
+            ]
+        )
         session.commit()
         actor_id, target_person_id = actor.id, target_person.id
 
@@ -731,20 +926,26 @@ def test_relationship_cannot_be_deactivated_while_access_is_rooted_there(
         },
     )
     role_id = role_response.json()["id"]
-    assert client.post(
-        f"/api/v1/access/roles/{role_id}/permissions/{PEOPLE_READ}",
-        headers=auth_headers(actor_id),
-    ).status_code == 200
-    assert client.post(
-        "/api/v1/access/assignments",
-        headers=auth_headers(actor_id),
-        json={
-            "user_id": user_response.json()["id"],
-            "role_id": role_id,
-            "organization_id": str(company_a_id),
-            "scope_mode": "self",
-        },
-    ).status_code == 201
+    assert (
+        client.post(
+            f"/api/v1/access/roles/{role_id}/permissions/{PEOPLE_READ}",
+            headers=auth_headers(actor_id),
+        ).status_code
+        == 200
+    )
+    assert (
+        client.post(
+            "/api/v1/access/assignments",
+            headers=auth_headers(actor_id),
+            json={
+                "user_id": user_response.json()["id"],
+                "role_id": role_id,
+                "organization_id": str(company_a_id),
+                "scope_mode": "self",
+            },
+        ).status_code
+        == 201
+    )
 
     response = client.patch(
         f"/api/v1/people/{person_id}/relationships/{relationship_id}/status",
@@ -779,10 +980,13 @@ def test_assignment_reactivation_rechecks_person_relationship(
         },
     )
     role_id = role_response.json()["id"]
-    assert client.post(
-        f"/api/v1/access/roles/{role_id}/permissions/{PEOPLE_READ}",
-        headers=auth_headers(actor_id),
-    ).status_code == 200
+    assert (
+        client.post(
+            f"/api/v1/access/roles/{role_id}/permissions/{PEOPLE_READ}",
+            headers=auth_headers(actor_id),
+        ).status_code
+        == 200
+    )
     assigned = client.post(
         "/api/v1/access/assignments",
         headers=auth_headers(actor_id),
@@ -795,16 +999,22 @@ def test_assignment_reactivation_rechecks_person_relationship(
     )
     assert assigned.status_code == 201
     assignment_id = assigned.json()["id"]
-    assert client.patch(
-        f"/api/v1/access/assignments/{assignment_id}/status",
-        headers=auth_headers(actor_id),
-        json={"is_active": False},
-    ).status_code == 200
-    assert client.patch(
-        f"/api/v1/people/{person_id}/relationships/{relationship_id}/status",
-        headers=auth_headers(actor_id),
-        json={"is_active": False},
-    ).status_code == 200
+    assert (
+        client.patch(
+            f"/api/v1/access/assignments/{assignment_id}/status",
+            headers=auth_headers(actor_id),
+            json={"is_active": False},
+        ).status_code
+        == 200
+    )
+    assert (
+        client.patch(
+            f"/api/v1/people/{person_id}/relationships/{relationship_id}/status",
+            headers=auth_headers(actor_id),
+            json={"is_active": False},
+        ).status_code
+        == 200
+    )
 
     reactivation = client.patch(
         f"/api/v1/access/assignments/{assignment_id}/status",
@@ -829,10 +1039,13 @@ def test_role_permission_revoke_is_audited(
         },
     )
     role_id = created.json()["id"]
-    assert client.post(
-        f"/api/v1/access/roles/{role_id}/permissions/{PEOPLE_READ}",
-        headers=auth_headers(actor_id),
-    ).status_code == 200
+    assert (
+        client.post(
+            f"/api/v1/access/roles/{role_id}/permissions/{PEOPLE_READ}",
+            headers=auth_headers(actor_id),
+        ).status_code
+        == 200
+    )
     revoked = client.delete(
         f"/api/v1/access/roles/{role_id}/permissions/{PEOPLE_READ}",
         headers=auth_headers(actor_id),

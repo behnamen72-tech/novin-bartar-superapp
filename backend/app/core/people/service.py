@@ -311,6 +311,7 @@ def change_person_status(
         )
     if person.user is not None and person.user.is_active:
         from app.core.access.service import assert_actor_dominates_user_access
+
         assert_actor_dominates_user_access(
             session, actor_user_id=actor.id, target_user_id=person.user.id
         )
@@ -442,6 +443,7 @@ def change_person_relationship_status(
         person = _get_person(session, person_id)
         if person.user is not None:
             from app.core.access.models import UserRoleAssignment
+
             active_access = session.scalar(
                 select(UserRoleAssignment.id)
                 .where(

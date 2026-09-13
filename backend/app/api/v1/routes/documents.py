@@ -130,9 +130,7 @@ def _document_detail_response(document: Document) -> DocumentDetailResponse:
             for version in document.versions
         ],
         links=[
-            DocumentLinkResponse.model_validate(link)
-            for link in document.links
-            if link.is_active
+            DocumentLinkResponse.model_validate(link) for link in document.links if link.is_active
         ],
     )
 
@@ -610,8 +608,7 @@ def download_document_endpoint(
     encoded_filename = quote(downloaded.file_name, safe="")
     headers = {
         "Content-Disposition": (
-            'attachment; filename="document"; '
-            f"filename*=UTF-8''{encoded_filename}"
+            f"attachment; filename=\"document\"; filename*=UTF-8''{encoded_filename}"
         ),
         "X-Content-Type-Options": "nosniff",
     }

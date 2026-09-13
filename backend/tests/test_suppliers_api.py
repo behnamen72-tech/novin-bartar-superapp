@@ -108,7 +108,9 @@ def _seed_user(
     label: str,
     scope_mode: OrganizationScopeMode = OrganizationScopeMode.SELF,
 ) -> User:
-    person = Person(first_name=label, last_name="User", email=f"{label.lower()}-{uuid4()}@test.local")
+    person = Person(
+        first_name=label, last_name="User", email=f"{label.lower()}-{uuid4()}@test.local"
+    )
     session.add(person)
     session.flush()
     session.add(
@@ -143,9 +145,21 @@ def _seed_user(
 
 def _seed_tree(factory: sessionmaker[Session]) -> dict[str, UUID]:
     with factory() as session:
-        holding = Organization(name="Holding", code=f"H-{uuid4()}", organization_type=OrganizationType.HOLDING)
-        branch_a = Organization(name="Company A", code=f"A-{uuid4()}", organization_type=OrganizationType.COMPANY, parent=holding)
-        branch_b = Organization(name="Company B", code=f"B-{uuid4()}", organization_type=OrganizationType.COMPANY, parent=holding)
+        holding = Organization(
+            name="Holding", code=f"H-{uuid4()}", organization_type=OrganizationType.HOLDING
+        )
+        branch_a = Organization(
+            name="Company A",
+            code=f"A-{uuid4()}",
+            organization_type=OrganizationType.COMPANY,
+            parent=holding,
+        )
+        branch_b = Organization(
+            name="Company B",
+            code=f"B-{uuid4()}",
+            organization_type=OrganizationType.COMPANY,
+            parent=holding,
+        )
         session.add_all([holding, branch_a, branch_b])
         session.flush()
         admin = _seed_user(
@@ -155,15 +169,27 @@ def _seed_tree(factory: sessionmaker[Session]) -> dict[str, UUID]:
             label="Admin",
             scope_mode=OrganizationScopeMode.SELF_AND_DESCENDANTS,
         )
-        manager_a = _seed_user(session, organization=branch_a, permission_codes=ALL_SUPPLIER_PERMISSIONS, label="ManagerA")
-        manager_b = _seed_user(session, organization=branch_b, permission_codes=ALL_SUPPLIER_PERMISSIONS, label="ManagerB")
+        manager_a = _seed_user(
+            session,
+            organization=branch_a,
+            permission_codes=ALL_SUPPLIER_PERMISSIONS,
+            label="ManagerA",
+        )
+        manager_b = _seed_user(
+            session,
+            organization=branch_b,
+            permission_codes=ALL_SUPPLIER_PERMISSIONS,
+            label="ManagerB",
+        )
         reader_a = _seed_user(
             session,
             organization=branch_a,
             permission_codes=(SUPPLIER_READ, SUPPLIER_REPRESENTATIVE_READ),
             label="ReaderA",
         )
-        no_supplier = _seed_user(session, organization=branch_a, permission_codes=(), label="NoSupplier")
+        no_supplier = _seed_user(
+            session, organization=branch_a, permission_codes=(), label="NoSupplier"
+        )
         session.commit()
         return {
             "holding": holding.id,
@@ -234,7 +260,11 @@ def test_only_one_active_primary_representative_is_enforced_by_db_index(
     assert second.status_code == 409
 
     with supplier_db() as session:
-        rows = session.scalars(select(SupplierRepresentative).where(SupplierRepresentative.supplier_id == UUID(supplier["id"]))).all()
+        rows = session.scalars(
+            select(SupplierRepresentative).where(
+                SupplierRepresentative.supplier_id == UUID(supplier["id"])
+            )
+        ).all()
         assert len(rows) == 1
         assert rows[0].is_primary is True
 
@@ -293,8 +323,12 @@ def test_representative_pii_and_note_body_do_not_enter_audit(
     assert note.status_code == 201
 
     with supplier_db() as session:
-        events = session.scalars(select(AuditEvent).where(AuditEvent.action.like("supplier.%"))).all()
-        serialized = " ".join(str((e.before_state, e.after_state, e.event_metadata)) for e in events)
+        events = session.scalars(
+            select(AuditEvent).where(AuditEvent.action.like("supplier.%"))
+        ).all()
+        serialized = " ".join(
+            str((e.before_state, e.after_state, e.event_metadata)) for e in events
+        )
         assert phone not in serialized
         assert email not in serialized
         assert note_secret not in serialized
@@ -384,7 +418,11 @@ def test_external_id_nfkc_trim_normalization_preserves_case_and_db_uniqueness(
     assert case_distinct.status_code == 201
 
     with supplier_db() as session:
-        refs = session.scalars(select(SupplierExternalReference).where(SupplierExternalReference.organization_id == ids["branch_a"])).all()
+        refs = session.scalars(
+            select(SupplierExternalReference).where(
+                SupplierExternalReference.organization_id == ids["branch_a"]
+            )
+        ).all()
         assert {ref.normalized_external_id for ref in refs} == {"ABC-001", "abc-001"}
 
 
@@ -421,7 +459,9 @@ def test_notes_and_representatives_require_base_supplier_read(
         specialized_id = specialized.id
 
     notes = client.get(f"/api/v1/suppliers/{supplier['id']}/notes", headers=headers(specialized_id))
-    reps = client.get(f"/api/v1/suppliers/{supplier['id']}/representatives", headers=headers(specialized_id))
+    reps = client.get(
+        f"/api/v1/suppliers/{supplier['id']}/representatives", headers=headers(specialized_id)
+    )
     assert notes.status_code == 404
     assert reps.status_code == 404
 
@@ -517,7 +557,10 @@ def test_search_reuses_supplier_acl_before_limit(
         headers=headers(ids["admin"]),
     )
     assert admin_search.status_code == 200
-    assert {item["title"] for item in admin_search.json()["results"]} == {"Alpha Supplier A", "Alpha Supplier B"}
+    assert {item["title"] for item in admin_search.json()["results"]} == {
+        "Alpha Supplier A",
+        "Alpha Supplier B",
+    }
 
 
 def test_primary_collision_on_update_and_representative_version_is_enforced(
@@ -581,7 +624,11 @@ def test_contact_read_permission_reveals_raw_contact_only_with_base_context(
         contact_reader = _seed_user(
             session,
             organization=org,
-            permission_codes=(SUPPLIER_READ, SUPPLIER_REPRESENTATIVE_READ, SUPPLIER_REPRESENTATIVE_CONTACT_READ),
+            permission_codes=(
+                SUPPLIER_READ,
+                SUPPLIER_REPRESENTATIVE_READ,
+                SUPPLIER_REPRESENTATIVE_CONTACT_READ,
+            ),
             label="ContactReader",
         )
         contact_only = _seed_user(
@@ -663,7 +710,11 @@ def test_tag_name_and_external_id_are_excluded_from_audit_payloads(
     assert external.status_code == 201
 
     with supplier_db() as session:
-        events = session.scalars(select(AuditEvent).where(AuditEvent.action.like("supplier.%"))).all()
-        serialized = " ".join(str((e.before_state, e.after_state, e.event_metadata)) for e in events)
+        events = session.scalars(
+            select(AuditEvent).where(AuditEvent.action.like("supplier.%"))
+        ).all()
+        serialized = " ".join(
+            str((e.before_state, e.after_state, e.event_metadata)) for e in events
+        )
         assert tag_secret not in serialized
         assert external_secret not in serialized

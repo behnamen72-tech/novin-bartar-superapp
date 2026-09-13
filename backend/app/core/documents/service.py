@@ -169,9 +169,7 @@ def _require_document_permission(
             DocumentPermission.document_id == document.id,
             DocumentPermission.is_active.is_(True),
             DocumentPermission.role_id.in_(effective_role_ids),
-            DocumentPermission.permission_type.in_(
-                _document_acl_types_for(permission_code)
-            ),
+            DocumentPermission.permission_type.in_(_document_acl_types_for(permission_code)),
         )
         .limit(1)
     )
@@ -223,9 +221,7 @@ def _get_locked_document_for_permission_admin(
     user_id: UUID,
     document_id: UUID,
 ) -> Document:
-    document = session.scalar(
-        select(Document).where(Document.id == document_id).with_for_update()
-    )
+    document = session.scalar(select(Document).where(Document.id == document_id).with_for_update())
     if document is None:
         raise DocumentNotFoundError("Document not found.")
     _require_document_permission_admin(session, user_id=user_id, document=document)
@@ -242,18 +238,13 @@ def _validate_document_permission_target(
     role = session.scalar(
         select(Role)
         .where(Role.id == role_id, Role.is_active.is_(True))
-        .options(
-            selectinload(Role.permission_links).selectinload(RolePermission.permission)
-        )
+        .options(selectinload(Role.permission_links).selectinload(RolePermission.permission))
     )
     required_permission_code = (
-        DOCUMENTS_READ
-        if permission_type == DocumentPermissionType.READ
-        else DOCUMENTS_MANAGE
+        DOCUMENTS_READ if permission_type == DocumentPermissionType.READ else DOCUMENTS_MANAGE
     )
     if role is None or not any(
-        link.permission.is_active
-        and link.permission.code == required_permission_code
+        link.permission.is_active and link.permission.code == required_permission_code
         for link in role.permission_links
     ):
         raise DocumentPermissionTargetNotFoundError(
@@ -285,9 +276,7 @@ def _get_locked_document(
     document_id: UUID,
     permission_code: str,
 ) -> Document:
-    document = session.scalar(
-        select(Document).where(Document.id == document_id).with_for_update()
-    )
+    document = session.scalar(select(Document).where(Document.id == document_id).with_for_update())
     if document is None:
         raise DocumentNotFoundError("Document not found.")
 
@@ -338,8 +327,7 @@ def _validate_link_target(
             select(PersonOrganizationRelationship.id)
             .where(
                 PersonOrganizationRelationship.person_id == person.id,
-                PersonOrganizationRelationship.organization_id
-                == document.organization_id,
+                PersonOrganizationRelationship.organization_id == document.organization_id,
             )
             .limit(1)
         )
@@ -353,9 +341,7 @@ def _validate_link_target(
 
     # The Pydantic API enum prevents this today; keep a fail-closed service guard
     # for direct/internal callers and future entity types.
-    raise DocumentLinkTargetNotFoundError(
-        "Unsupported document link target type."
-    )
+    raise DocumentLinkTargetNotFoundError("Unsupported document link target type.")
 
 
 def create_document(
@@ -461,9 +447,7 @@ def list_documents(
     offset: int = 0,
 ) -> list[Document]:
     if (entity_type is None) != (entity_id is None):
-        raise DocumentLinkFilterError(
-            "entity_type and entity_id must be provided together."
-        )
+        raise DocumentLinkFilterError("entity_type and entity_id must be provided together.")
 
     if organization_id is not None:
         require_permission_for_organization(
@@ -493,9 +477,7 @@ def list_documents(
     )
 
     if document_type is not None:
-        statement = statement.where(
-            Document.document_type == document_type.strip().lower()
-        )
+        statement = statement.where(Document.document_type == document_type.strip().lower())
     if status is not None:
         statement = statement.where(Document.status == status)
     if category_id is not None:
@@ -543,9 +525,7 @@ def get_document_for_user(
         select(Document)
         .where(Document.id == document_id)
         .options(
-            selectinload(Document.versions).selectinload(
-                DocumentVersion.storage_object
-            ),
+            selectinload(Document.versions).selectinload(DocumentVersion.storage_object),
             selectinload(Document.links),
         )
     )
@@ -670,9 +650,7 @@ def add_document_link(
             )
         )
         if existing is not None and existing.is_active:
-            raise DocumentLinkConflictError(
-                "Document is already linked to this target."
-            )
+            raise DocumentLinkConflictError("Document is already linked to this target.")
 
         if existing is None:
             link = DocumentLink(
@@ -936,9 +914,7 @@ def revoke_document_permission(
             )
         )
         if permission is None:
-            raise DocumentPermissionNotFoundError(
-                "Document permission not found."
-            )
+            raise DocumentPermissionNotFoundError("Document permission not found.")
 
         other_active = list(
             session.scalars(
@@ -953,8 +929,7 @@ def revoke_document_permission(
             permission.permission_type == DocumentPermissionType.MANAGE.value
             and other_active
             and not any(
-                item.permission_type == DocumentPermissionType.MANAGE.value
-                for item in other_active
+                item.permission_type == DocumentPermissionType.MANAGE.value for item in other_active
             )
         ):
             raise DocumentPermissionConflictError(
@@ -1016,10 +991,7 @@ def create_document_version(
         max_size_bytes=max_size_bytes,
     )
 
-    object_key = (
-        f"{document.organization_id}/{document.id}/"
-        f"{uuid4().hex}{extension}"
-    )
+    object_key = f"{document.organization_id}/{document.id}/{uuid4().hex}{extension}"
     checksum = sha256(content).hexdigest()
     stored_key: str | None = None
 
@@ -1124,9 +1096,7 @@ def download_latest_document(
 
     storage_object = version.storage_object
     if storage_object.provider != storage.provider_name:
-        raise RuntimeError(
-            "Configured storage provider cannot read this document version."
-        )
+        raise RuntimeError("Configured storage provider cannot read this document version.")
 
     content = storage.read(storage_object.object_path)
     if len(content) != storage_object.size_bytes:
@@ -1316,13 +1286,17 @@ def update_document_metadata(
             description = changes["description"]
             if description is not None and not isinstance(description, str):
                 raise DocumentMetadataValidationError("Invalid document description.")
-            document.description = description.strip() or None if isinstance(description, str) else None
+            document.description = (
+                description.strip() or None if isinstance(description, str) else None
+            )
 
         if "priority" in changes:
             priority = changes["priority"]
             if isinstance(priority, DocumentPriority):
                 document.priority = priority.value
-            elif isinstance(priority, str) and priority in {item.value for item in DocumentPriority}:
+            elif isinstance(priority, str) and priority in {
+                item.value for item in DocumentPriority
+            }:
                 document.priority = priority
             else:
                 raise DocumentMetadataValidationError("Invalid document priority.")
@@ -1373,9 +1347,7 @@ def update_document_metadata(
             if policy is None:
                 raise DocumentMetadataValidationError("Assigned retention policy is missing.")
 
-        if policy is not None and (
-            "retention_policy_id" in changes or "expires_at" in changes
-        ):
+        if policy is not None and ("retention_policy_id" in changes or "expires_at" in changes):
             document.retention_review_at = _retention_review_at(
                 document=document,
                 policy=policy,
@@ -1576,7 +1548,9 @@ def update_document_category(
             description = changes["description"]
             if description is not None and not isinstance(description, str):
                 raise DocumentMetadataValidationError("Invalid category description.")
-            category.description = description.strip() or None if isinstance(description, str) else None
+            category.description = (
+                description.strip() or None if isinstance(description, str) else None
+            )
         if "parent_id" in changes:
             parent_id = changes["parent_id"]
             if parent_id is not None and not isinstance(parent_id, UUID):
@@ -1845,7 +1819,9 @@ def update_retention_policy(
             description = changes["description"]
             if description is not None and not isinstance(description, str):
                 raise DocumentMetadataValidationError("Invalid retention policy description.")
-            policy.description = description.strip() or None if isinstance(description, str) else None
+            policy.description = (
+                description.strip() or None if isinstance(description, str) else None
+            )
         if "retention_days" in changes:
             days = changes["retention_days"]
             if not isinstance(days, int) or isinstance(days, bool) or days < 1 or days > 36500:
@@ -2012,9 +1988,7 @@ def list_expiring_documents(
     if not include_expired:
         statement = statement.where(Document.expires_at >= current)
     statement = (
-        statement.order_by(Document.expires_at.asc(), Document.id.asc())
-        .offset(offset)
-        .limit(limit)
+        statement.order_by(Document.expires_at.asc(), Document.id.asc()).offset(offset).limit(limit)
     )
     return list(session.scalars(statement).all())
 

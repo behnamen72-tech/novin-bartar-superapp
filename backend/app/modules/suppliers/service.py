@@ -105,7 +105,9 @@ def _supplier_statement(supplier_id: UUID, *, for_update: bool = False):
     return statement
 
 
-def _get_supplier(session: Session, supplier_id: UUID, *, for_update: bool = False) -> SupplierProfile:
+def _get_supplier(
+    session: Session, supplier_id: UUID, *, for_update: bool = False
+) -> SupplierProfile:
     supplier = session.scalar(_supplier_statement(supplier_id, for_update=for_update))
     if supplier is None:
         raise SupplierNotFoundError("Supplier not found.")
@@ -175,7 +177,9 @@ def representative_response_data(
     }
 
 
-def list_supplier_organizations_for_user(session: Session, *, user_id: UUID) -> list[dict[str, object]]:
+def list_supplier_organizations_for_user(
+    session: Session, *, user_id: UUID
+) -> list[dict[str, object]]:
     permission_codes = (
         SUPPLIER_READ,
         SUPPLIER_MANAGE,
@@ -214,7 +218,8 @@ def list_supplier_organizations_for_user(session: Session, *, user_id: UUID) -> 
             "can_manage": org.id in allowed[SUPPLIER_MANAGE],
             "can_read_representatives": org.id in allowed[SUPPLIER_REPRESENTATIVE_READ],
             "can_manage_representatives": org.id in allowed[SUPPLIER_REPRESENTATIVE_MANAGE],
-            "can_read_representative_contacts": org.id in allowed[SUPPLIER_REPRESENTATIVE_CONTACT_READ],
+            "can_read_representative_contacts": org.id
+            in allowed[SUPPLIER_REPRESENTATIVE_CONTACT_READ],
             "can_read_notes": org.id in allowed[SUPPLIER_NOTES_READ],
             "can_manage_notes": org.id in allowed[SUPPLIER_NOTES_MANAGE],
             "can_assign": org.id in allowed[SUPPLIER_ASSIGN],
@@ -340,7 +345,9 @@ def search_suppliers_for_user(
     return list(session.scalars(statement).all())
 
 
-def create_supplier(session: Session, *, actor: User, payload: SupplierCreateRequest) -> SupplierProfile:
+def create_supplier(
+    session: Session, *, actor: User, payload: SupplierCreateRequest
+) -> SupplierProfile:
     require_permission_for_organization(
         session,
         user_id=actor.id,
@@ -492,7 +499,9 @@ def _validate_assignee(session: Session, *, user_id: UUID, organization_id: UUID
         )
         for code in (SUPPLIER_READ, SUPPLIER_MANAGE)
     ):
-        raise SupplierValidationError("Assigned owner cannot access this organization supplier context.")
+        raise SupplierValidationError(
+            "Assigned owner cannot access this organization supplier context."
+        )
     return user
 
 
@@ -512,7 +521,9 @@ def assign_supplier_owner(
     )
     if supplier.version != payload.expected_version:
         raise SupplierConflictError("Supplier was modified by another request.")
-    _validate_assignee(session, user_id=payload.assigned_owner_user_id, organization_id=supplier.organization_id)
+    _validate_assignee(
+        session, user_id=payload.assigned_owner_user_id, organization_id=supplier.organization_id
+    )
     previous = supplier.assigned_owner_user_id
     supplier.assigned_owner_user_id = payload.assigned_owner_user_id
     supplier.version += 1
@@ -524,7 +535,10 @@ def assign_supplier_owner(
         resource_type="supplier_profile",
         resource_id=supplier.id,
         before_state={"assigned_owner_user_id": previous, "version": payload.expected_version},
-        after_state={"assigned_owner_user_id": supplier.assigned_owner_user_id, "version": supplier.version},
+        after_state={
+            "assigned_owner_user_id": supplier.assigned_owner_user_id,
+            "version": supplier.version,
+        },
     )
     session.commit()
     return _get_supplier(session, supplier.id)
@@ -604,7 +618,9 @@ def list_representatives_for_user(
         permission_code=SUPPLIER_REPRESENTATIVE_READ,
         not_found_message="Supplier representative not found.",
     )
-    statement = select(SupplierRepresentative).where(SupplierRepresentative.supplier_id == supplier.id)
+    statement = select(SupplierRepresentative).where(
+        SupplierRepresentative.supplier_id == supplier.id
+    )
     if not include_inactive:
         statement = statement.where(SupplierRepresentative.is_active.is_(True))
     representatives = list(
@@ -662,7 +678,9 @@ def create_representative(
         session.flush()
     except IntegrityError as exc:
         session.rollback()
-        raise SupplierConflictError("Supplier already has an active primary representative.") from exc
+        raise SupplierConflictError(
+            "Supplier already has an active primary representative."
+        ) from exc
     record_audit_event(
         session,
         actor=actor,
@@ -670,7 +688,12 @@ def create_representative(
         action="supplier.representative.created",
         resource_type="supplier_representative",
         resource_id=representative.id,
-        after_state={"supplier_id": supplier.id, "is_primary": representative.is_primary, "is_active": True, "version": 1},
+        after_state={
+            "supplier_id": supplier.id,
+            "is_primary": representative.is_primary,
+            "is_active": True,
+            "version": 1,
+        },
     )
     session.commit()
     session.refresh(representative)
@@ -709,7 +732,11 @@ def update_representative(
     if not changes:
         return representative
     previous_version = representative.version
-    before = {"is_primary": representative.is_primary, "is_active": representative.is_active, "version": previous_version}
+    before = {
+        "is_primary": representative.is_primary,
+        "is_active": representative.is_active,
+        "version": previous_version,
+    }
     changed_fields = sorted(changes)
     for key, value in changes.items():
         setattr(representative, key, value)
@@ -718,7 +745,9 @@ def update_representative(
         session.flush()
     except IntegrityError as exc:
         session.rollback()
-        raise SupplierConflictError("Supplier already has an active primary representative.") from exc
+        raise SupplierConflictError(
+            "Supplier already has an active primary representative."
+        ) from exc
     record_audit_event(
         session,
         actor=actor,
@@ -727,7 +756,11 @@ def update_representative(
         resource_type="supplier_representative",
         resource_id=representative.id,
         before_state=before,
-        after_state={"is_primary": representative.is_primary, "is_active": representative.is_active, "version": representative.version},
+        after_state={
+            "is_primary": representative.is_primary,
+            "is_active": representative.is_active,
+            "version": representative.version,
+        },
         metadata={"supplier_id": supplier.id, "changed_fields": changed_fields},
     )
     session.commit()
@@ -743,7 +776,9 @@ def list_tags_for_user(
     include_inactive: bool = False,
 ) -> list[SupplierTag]:
     if not any(
-        has_permission(session, user_id=user_id, permission_code=code, organization_id=organization_id)
+        has_permission(
+            session, user_id=user_id, permission_code=code, organization_id=organization_id
+        )
         for code in (SUPPLIER_READ, SUPPLIER_TAGS_CATALOG_MANAGE, SUPPLIER_TAGS_ASSIGN)
     ):
         raise AuthorizationError("Permission denied.")
@@ -788,7 +823,9 @@ def create_tag(session: Session, *, actor: User, payload: SupplierTagCreateReque
     return tag
 
 
-def attach_tag(session: Session, *, actor: User, supplier_id: UUID, tag_id: UUID) -> SupplierProfile:
+def attach_tag(
+    session: Session, *, actor: User, supplier_id: UUID, tag_id: UUID
+) -> SupplierProfile:
     supplier = _get_supplier(session, supplier_id, for_update=True)
     _require_resource_permission(
         session,
@@ -807,7 +844,9 @@ def attach_tag(session: Session, *, actor: User, supplier_id: UUID, tag_id: UUID
         raise SupplierNotFoundError("Supplier tag not found.")
     existing = session.get(SupplierProfileTag, (supplier.id, tag.id))
     if existing is None:
-        session.add(SupplierProfileTag(supplier_id=supplier.id, tag_id=tag.id, created_by_user_id=actor.id))
+        session.add(
+            SupplierProfileTag(supplier_id=supplier.id, tag_id=tag.id, created_by_user_id=actor.id)
+        )
         supplier.version += 1
         record_audit_event(
             session,
@@ -822,7 +861,9 @@ def attach_tag(session: Session, *, actor: User, supplier_id: UUID, tag_id: UUID
     return _get_supplier(session, supplier.id)
 
 
-def detach_tag(session: Session, *, actor: User, supplier_id: UUID, tag_id: UUID) -> SupplierProfile:
+def detach_tag(
+    session: Session, *, actor: User, supplier_id: UUID, tag_id: UUID
+) -> SupplierProfile:
     supplier = _get_supplier(session, supplier_id, for_update=True)
     _require_resource_permission(
         session,
@@ -853,7 +894,9 @@ def detach_tag(session: Session, *, actor: User, supplier_id: UUID, tag_id: UUID
     return _get_supplier(session, supplier.id)
 
 
-def list_notes_for_user(session: Session, *, user_id: UUID, supplier_id: UUID) -> list[SupplierNote]:
+def list_notes_for_user(
+    session: Session, *, user_id: UUID, supplier_id: UUID
+) -> list[SupplierNote]:
     supplier = _get_supplier(session, supplier_id)
     _require_resource_permission(
         session,
@@ -900,7 +943,9 @@ def create_note(
         permission_code=SUPPLIER_NOTES_MANAGE,
         not_found_message="Supplier note not found.",
     )
-    note = SupplierNote(supplier_id=supplier.id, author_user_id=actor.id, body=payload.body, version=1)
+    note = SupplierNote(
+        supplier_id=supplier.id, author_user_id=actor.id, body=payload.body, version=1
+    )
     session.add(note)
     session.flush()
     record_audit_event(
@@ -959,7 +1004,11 @@ def update_note(
         action="supplier.note.updated",
         resource_type="supplier_note",
         resource_id=note.id,
-        metadata={"supplier_id": supplier.id, "previous_version": previous_version, "new_version": note.version},
+        metadata={
+            "supplier_id": supplier.id,
+            "previous_version": previous_version,
+            "new_version": note.version,
+        },
     )
     session.commit()
     session.refresh(note)
@@ -991,7 +1040,11 @@ def list_external_references_for_user(
         session.scalars(
             select(SupplierExternalReference)
             .where(SupplierExternalReference.supplier_id == supplier.id)
-            .order_by(SupplierExternalReference.system, SupplierExternalReference.created_at, SupplierExternalReference.id)
+            .order_by(
+                SupplierExternalReference.system,
+                SupplierExternalReference.created_at,
+                SupplierExternalReference.id,
+            )
         ).all()
     )
 
@@ -1032,7 +1085,9 @@ def create_external_reference(
         session.flush()
     except IntegrityError as exc:
         session.rollback()
-        raise SupplierConflictError("External reference already exists in this organization and system.") from exc
+        raise SupplierConflictError(
+            "External reference already exists in this organization and system."
+        ) from exc
     record_audit_event(
         session,
         actor=actor,

@@ -166,14 +166,13 @@ class HRPositionResponse(BaseModel):
     job_profile: HRJobProfileSummary
 
 
-
-
 class HRPersonOptionResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
     first_name: str
     last_name: str
+
 
 class HREmploymentCreateRequest(BaseModel):
     organization_id: UUID

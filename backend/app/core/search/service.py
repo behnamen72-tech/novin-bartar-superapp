@@ -73,9 +73,7 @@ def search_core(
                 if first_relationship is not None
                 else None
             )
-            subtitle = " · ".join(
-                value for value in (relationship_label, contact) if value
-            ) or None
+            subtitle = " · ".join(value for value in (relationship_label, contact) if value) or None
             results.append(
                 SearchResultItem(
                     entity_type=SearchEntityType.PERSON,
@@ -116,7 +114,6 @@ def search_core(
             )
             for document in documents
         )
-
 
     if SearchEntityType.CUSTOMER in entity_types:
         customers = search_customers_for_user(

@@ -13,11 +13,7 @@ def validate_organization_hierarchy_before_flush(
 ) -> None:
     del flush_context, instances
 
-    candidates = {
-        obj
-        for obj in session.new.union(session.dirty)
-        if isinstance(obj, Organization)
-    }
+    candidates = {obj for obj in session.new.union(session.dirty) if isinstance(obj, Organization)}
 
     for organization in candidates:
         parent = organization.parent
@@ -26,9 +22,7 @@ def validate_organization_hierarchy_before_flush(
             parent = session.get(Organization, organization.parent_id)
 
         if organization.parent_id is not None and parent is None:
-            raise ValueError(
-                f"Parent organization {organization.parent_id} does not exist."
-            )
+            raise ValueError(f"Parent organization {organization.parent_id} does not exist.")
 
         parent_type = parent.organization_type if parent is not None else None
         validate_parent_type(

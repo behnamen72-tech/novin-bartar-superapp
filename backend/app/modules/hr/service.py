@@ -189,9 +189,7 @@ def _get_employment(
     *,
     for_update: bool = False,
 ) -> HREmployment:
-    employment = session.scalar(
-        _employment_statement(employment_id, for_update=for_update)
-    )
+    employment = session.scalar(_employment_statement(employment_id, for_update=for_update))
     if employment is None:
         raise HRNotFoundError("Employment record not found.")
     return employment
@@ -415,9 +413,7 @@ def change_job_profile_status(
             .limit(1)
         )
         if active_position is not None:
-            raise HRConflictError(
-                "Deactivate active positions using this job profile first."
-            )
+            raise HRConflictError("Deactivate active positions using this job profile first.")
 
     before = {"is_active": profile.is_active}
     profile.is_active = payload.is_active
@@ -690,7 +686,9 @@ def change_position_status(
             .limit(1)
         )
         if active_child is not None:
-            raise HRConflictError("Reassign active child positions before deactivating this position.")
+            raise HRConflictError(
+                "Reassign active child positions before deactivating this position."
+            )
     else:
         _validate_job_profile_for_position(
             session,
@@ -770,7 +768,9 @@ def _validate_position_for_employment(
         return None
     position = _get_position(session, position_id, for_update=True)
     if position.organization_id != organization_id or not position.is_active:
-        raise HRValidationError("Position must be active and belong to the employment organization.")
+        raise HRValidationError(
+            "Position must be active and belong to the employment organization."
+        )
     occupied_statement = select(HREmployment.id).where(
         HREmployment.position_id == position.id,
         HREmployment.is_active.is_(True),
@@ -1023,7 +1023,11 @@ def change_employment_status(
         not_found_message="Employment record not found.",
     )
     if employment.is_active is payload.is_active:
-        if not payload.is_active and payload.end_date is not None and employment.end_date != payload.end_date:
+        if (
+            not payload.is_active
+            and payload.end_date is not None
+            and employment.end_date != payload.end_date
+        ):
             if payload.end_date < employment.start_date:
                 raise HRValidationError("end_date cannot be before start_date.")
             before = {"end_date": employment.end_date.isoformat() if employment.end_date else None}
@@ -1065,7 +1069,9 @@ def change_employment_status(
             .limit(1)
         )
         if conflicting is not None:
-            raise HRConflictError("Person already has another active employment in this organization.")
+            raise HRConflictError(
+                "Person already has another active employment in this organization."
+            )
         _validate_position_for_employment(
             session,
             position_id=employment.position_id,

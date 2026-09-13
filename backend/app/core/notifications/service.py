@@ -24,9 +24,7 @@ def _clean_required(value: str, *, field: str, max_length: int) -> str:
     if not normalized:
         raise NotificationValidationError(f"{field} cannot be empty.")
     if len(normalized) > max_length:
-        raise NotificationValidationError(
-            f"{field} cannot exceed {max_length} characters."
-        )
+        raise NotificationValidationError(f"{field} cannot exceed {max_length} characters.")
     return normalized
 
 
@@ -37,9 +35,7 @@ def _clean_optional(value: str | None, *, field: str, max_length: int) -> str | 
     if not normalized:
         return None
     if len(normalized) > max_length:
-        raise NotificationValidationError(
-            f"{field} cannot exceed {max_length} characters."
-        )
+        raise NotificationValidationError(f"{field} cannot exceed {max_length} characters.")
     return normalized
 
 
@@ -103,12 +99,8 @@ def create_notification(
         if existing is not None:
             return existing
 
-    cleaned_resource_type = _clean_optional(
-        resource_type, field="resource_type", max_length=100
-    )
-    cleaned_resource_id = _clean_optional(
-        resource_id, field="resource_id", max_length=160
-    )
+    cleaned_resource_type = _clean_optional(resource_type, field="resource_type", max_length=100)
+    cleaned_resource_id = _clean_optional(resource_id, field="resource_id", max_length=160)
     if (cleaned_resource_type is None) != (cleaned_resource_id is None):
         raise NotificationValidationError(
             "resource_type and resource_id must be provided together."
@@ -149,7 +141,11 @@ def list_notifications_for_user(
         stmt = stmt.where(Notification.organization_id == organization_id)
     if event_code:
         stmt = stmt.where(Notification.event_code == event_code.strip())
-    stmt = stmt.order_by(Notification.created_at.desc(), Notification.id.desc()).limit(limit).offset(offset)
+    stmt = (
+        stmt.order_by(Notification.created_at.desc(), Notification.id.desc())
+        .limit(limit)
+        .offset(offset)
+    )
     return list(session.scalars(stmt).all())
 
 

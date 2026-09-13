@@ -95,7 +95,9 @@ class WorkflowState(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     is_initial: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_terminal: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
-    definition: Mapped[WorkflowDefinition] = relationship("WorkflowDefinition", back_populates="states")
+    definition: Mapped[WorkflowDefinition] = relationship(
+        "WorkflowDefinition", back_populates="states"
+    )
 
 
 class WorkflowTransition(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -118,7 +120,9 @@ class WorkflowTransition(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         ForeignKey("workflow_states.id", ondelete="RESTRICT"), nullable=False, index=True
     )
 
-    definition: Mapped[WorkflowDefinition] = relationship("WorkflowDefinition", back_populates="transitions")
+    definition: Mapped[WorkflowDefinition] = relationship(
+        "WorkflowDefinition", back_populates="transitions"
+    )
     from_state: Mapped[WorkflowState] = relationship("WorkflowState", foreign_keys=[from_state_id])
     to_state: Mapped[WorkflowState] = relationship("WorkflowState", foreign_keys=[to_state_id])
 
@@ -127,7 +131,10 @@ class WorkflowInstance(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "workflow_instances"
     __table_args__ = (
         UniqueConstraint(
-            "definition_id", "organization_id", "resource_type", "resource_id",
+            "definition_id",
+            "organization_id",
+            "resource_type",
+            "resource_id",
             name="uq_workflow_instance_definition_resource",
         ),
         Index("ix_workflow_instances_org_status", "organization_id", "status"),
@@ -157,7 +164,9 @@ class WorkflowInstance(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    definition: Mapped[WorkflowDefinition] = relationship("WorkflowDefinition", back_populates="instances")
+    definition: Mapped[WorkflowDefinition] = relationship(
+        "WorkflowDefinition", back_populates="instances"
+    )
     organization: Mapped[Organization] = relationship("Organization")
     current_state: Mapped[WorkflowState] = relationship("WorkflowState")
     started_by: Mapped[User] = relationship("User")

@@ -121,8 +121,14 @@ def list_workflow_organizations_for_user(
     return result
 
 
-def _get_definition(session: Session, definition_id: UUID, *, lock: bool = False) -> WorkflowDefinition:
-    statement = select(WorkflowDefinition).where(WorkflowDefinition.id == definition_id).options(*_definition_options())
+def _get_definition(
+    session: Session, definition_id: UUID, *, lock: bool = False
+) -> WorkflowDefinition:
+    statement = (
+        select(WorkflowDefinition)
+        .where(WorkflowDefinition.id == definition_id)
+        .options(*_definition_options())
+    )
     if lock:
         statement = statement.with_for_update()
     definition = session.scalar(statement)
@@ -131,7 +137,9 @@ def _get_definition(session: Session, definition_id: UUID, *, lock: bool = False
     return definition
 
 
-def _require_manage_definition(session: Session, *, actor: User, definition: WorkflowDefinition) -> None:
+def _require_manage_definition(
+    session: Session, *, actor: User, definition: WorkflowDefinition
+) -> None:
     require_permission_for_organization(
         session,
         user_id=actor.id,
@@ -142,7 +150,9 @@ def _require_manage_definition(session: Session, *, actor: User, definition: Wor
 
 def _require_draft(definition: WorkflowDefinition) -> None:
     if definition.status is not WorkflowDefinitionStatus.DRAFT:
-        raise WorkflowConflictError("Published or retired workflow definitions are immutable; create a new version instead.")
+        raise WorkflowConflictError(
+            "Published or retired workflow definitions are immutable; create a new version instead."
+        )
 
 
 def _definition_applies_to_organization(
@@ -187,8 +197,11 @@ def list_definitions_for_user(
     )
     result: list[WorkflowDefinition] = []
     for definition in definitions:
-        if definition.status is WorkflowDefinitionStatus.PUBLISHED and _definition_applies_to_organization(
-            session, definition=definition, organization_id=organization_id
+        if (
+            definition.status is WorkflowDefinitionStatus.PUBLISHED
+            and _definition_applies_to_organization(
+                session, definition=definition, organization_id=organization_id
+            )
         ):
             result.append(definition)
             continue
@@ -196,7 +209,8 @@ def list_definitions_for_user(
             include_drafts
             and can_manage_target
             and definition.organization_id == organization_id
-            and definition.status in {WorkflowDefinitionStatus.DRAFT, WorkflowDefinitionStatus.RETIRED}
+            and definition.status
+            in {WorkflowDefinitionStatus.DRAFT, WorkflowDefinitionStatus.RETIRED}
         ):
             result.append(definition)
     return result
@@ -218,7 +232,9 @@ def get_definition_for_user(
     ):
         raise WorkflowNotFoundError("Workflow definition not found.")
     if definition.status is WorkflowDefinitionStatus.PUBLISHED:
-        if not _definition_applies_to_organization(session, definition=definition, organization_id=organization_id):
+        if not _definition_applies_to_organization(
+            session, definition=definition, organization_id=organization_id
+        ):
             raise WorkflowNotFoundError("Workflow definition not found.")
     elif definition.organization_id != organization_id or not has_permission(
         session,
@@ -254,7 +270,9 @@ def create_definition(
         .limit(1)
     )
     if exists is not None:
-        raise WorkflowConflictError("Workflow code already exists in this organization; create a new version instead.")
+        raise WorkflowConflictError(
+            "Workflow code already exists in this organization; create a new version instead."
+        )
 
     definition = WorkflowDefinition(
         organization_id=payload.organization_id,
@@ -351,7 +369,12 @@ def add_state(
         action="workflow.state.created",
         resource_type="workflow_state",
         resource_id=state.id,
-        after_state={"definition_id": str(definition.id), "code": state.code, "is_initial": state.is_initial, "is_terminal": state.is_terminal},
+        after_state={
+            "definition_id": str(definition.id),
+            "code": state.code,
+            "is_initial": state.is_initial,
+            "is_terminal": state.is_terminal,
+        },
     )
     session.commit()
     return _get_definition(session, definition.id)
@@ -372,12 +395,24 @@ def update_state(
     if state is None:
         raise WorkflowNotFoundError("Workflow state not found.")
     changes = payload.model_dump(exclude_unset=True)
-    if changes.get("is_initial") is True and any(item.is_initial and item.id != state.id for item in definition.states):
+    if changes.get("is_initial") is True and any(
+        item.is_initial and item.id != state.id for item in definition.states
+    ):
         raise WorkflowConflictError("A workflow version can have only one initial state.")
-    before = {"name": state.name, "position": state.position, "is_initial": state.is_initial, "is_terminal": state.is_terminal}
+    before = {
+        "name": state.name,
+        "position": state.position,
+        "is_initial": state.is_initial,
+        "is_terminal": state.is_terminal,
+    }
     for key, value in changes.items():
         setattr(state, key, value)
-    after = {"name": state.name, "position": state.position, "is_initial": state.is_initial, "is_terminal": state.is_terminal}
+    after = {
+        "name": state.name,
+        "position": state.position,
+        "is_initial": state.is_initial,
+        "is_terminal": state.is_terminal,
+    }
     if before != after:
         record_audit_event(
             session,
@@ -406,7 +441,9 @@ def delete_state(
     state = next((item for item in definition.states if item.id == state_id), None)
     if state is None:
         raise WorkflowNotFoundError("Workflow state not found.")
-    if any(t.from_state_id == state.id or t.to_state_id == state.id for t in definition.transitions):
+    if any(
+        t.from_state_id == state.id or t.to_state_id == state.id for t in definition.transitions
+    ):
         raise WorkflowConflictError("Remove transitions that reference this state first.")
     snapshot = {"definition_id": str(definition.id), "code": state.code}
     session.delete(state)
@@ -458,7 +495,12 @@ def add_transition(
         action="workflow.transition.created",
         resource_type="workflow_transition",
         resource_id=transition.id,
-        after_state={"definition_id": str(definition.id), "code": transition.code, "from_state_id": str(transition.from_state_id), "to_state_id": str(transition.to_state_id)},
+        after_state={
+            "definition_id": str(definition.id),
+            "code": transition.code,
+            "from_state_id": str(transition.from_state_id),
+            "to_state_id": str(transition.to_state_id),
+        },
     )
     session.commit()
     return _get_definition(session, definition.id)
@@ -487,10 +529,18 @@ def update_transition(
         raise WorkflowValidationError("Self transitions are not allowed.")
     if from_state.is_terminal:
         raise WorkflowValidationError("Terminal states cannot have outgoing transitions.")
-    before = {"name": transition.name, "from_state_id": str(transition.from_state_id), "to_state_id": str(transition.to_state_id)}
+    before = {
+        "name": transition.name,
+        "from_state_id": str(transition.from_state_id),
+        "to_state_id": str(transition.to_state_id),
+    }
     for key, value in changes.items():
         setattr(transition, key, value)
-    after = {"name": transition.name, "from_state_id": str(transition.from_state_id), "to_state_id": str(transition.to_state_id)}
+    after = {
+        "name": transition.name,
+        "from_state_id": str(transition.from_state_id),
+        "to_state_id": str(transition.to_state_id),
+    }
     if before != after:
         record_audit_event(
             session,
@@ -545,7 +595,9 @@ def _validate_publishable(definition: WorkflowDefinition) -> None:
     outgoing: dict[UUID, set[UUID]] = {state.id: set() for state in definition.states}
     for transition in definition.transitions:
         if transition.from_state_id not in state_ids or transition.to_state_id not in state_ids:
-            raise WorkflowValidationError("Every transition must reference states from the same workflow version.")
+            raise WorkflowValidationError(
+                "Every transition must reference states from the same workflow version."
+            )
         from_state = state_by_id[transition.from_state_id]
         if from_state.is_terminal:
             raise WorkflowValidationError("Terminal states cannot have outgoing transitions.")
@@ -553,7 +605,9 @@ def _validate_publishable(definition: WorkflowDefinition) -> None:
 
     for state in definition.states:
         if not state.is_terminal and not outgoing[state.id]:
-            raise WorkflowValidationError("Every non-terminal state must have at least one outgoing transition.")
+            raise WorkflowValidationError(
+                "Every non-terminal state must have at least one outgoing transition."
+            )
 
     reachable: set[UUID] = set()
     pending = [initial[0].id]
@@ -564,7 +618,9 @@ def _validate_publishable(definition: WorkflowDefinition) -> None:
         reachable.add(state_id)
         pending.extend(outgoing[state_id] - reachable)
     if reachable != state_ids:
-        raise WorkflowValidationError("Every workflow state must be reachable from the initial state.")
+        raise WorkflowValidationError(
+            "Every workflow state must be reachable from the initial state."
+        )
 
 
 def publish_definition(session: Session, *, actor: User, definition_id: UUID) -> WorkflowDefinition:
@@ -619,7 +675,9 @@ def retire_definition(session: Session, *, actor: User, definition_id: UUID) -> 
     definition = _get_definition(session, definition_id, lock=True)
     _require_manage_definition(session, actor=actor, definition=definition)
     if definition.status is WorkflowDefinitionStatus.DRAFT:
-        raise WorkflowConflictError("Draft workflows cannot be retired; publish them first or keep editing the draft.")
+        raise WorkflowConflictError(
+            "Draft workflows cannot be retired; publish them first or keep editing the draft."
+        )
     if definition.status is WorkflowDefinitionStatus.RETIRED:
         return definition
     definition.status = WorkflowDefinitionStatus.RETIRED
@@ -641,22 +699,29 @@ def create_new_version(session: Session, *, actor: User, definition_id: UUID) ->
     source = _get_definition(session, definition_id, lock=True)
     _require_manage_definition(session, actor=actor, definition=source)
     if source.status is WorkflowDefinitionStatus.DRAFT:
-        raise WorkflowConflictError("Finish or discard the current draft before creating another version.")
+        raise WorkflowConflictError(
+            "Finish or discard the current draft before creating another version."
+        )
     existing_draft = session.scalar(
-        select(WorkflowDefinition.id).where(
+        select(WorkflowDefinition.id)
+        .where(
             WorkflowDefinition.organization_id == source.organization_id,
             WorkflowDefinition.code == source.code,
             WorkflowDefinition.status == WorkflowDefinitionStatus.DRAFT,
-        ).limit(1)
+        )
+        .limit(1)
     )
     if existing_draft is not None:
         raise WorkflowConflictError("A draft version already exists for this workflow code.")
-    max_version = session.scalar(
-        select(func.max(WorkflowDefinition.version)).where(
-            WorkflowDefinition.organization_id == source.organization_id,
-            WorkflowDefinition.code == source.code,
+    max_version = (
+        session.scalar(
+            select(func.max(WorkflowDefinition.version)).where(
+                WorkflowDefinition.organization_id == source.organization_id,
+                WorkflowDefinition.code == source.code,
+            )
         )
-    ) or 0
+        or 0
+    )
     clone = WorkflowDefinition(
         organization_id=source.organization_id,
         code=source.code,
@@ -719,23 +784,30 @@ def start_instance(
         organization_id=payload.organization_id,
     )
     definition = _get_definition(session, payload.definition_id)
-    if definition.status is not WorkflowDefinitionStatus.PUBLISHED or not _definition_applies_to_organization(
-        session, definition=definition, organization_id=payload.organization_id
+    if (
+        definition.status is not WorkflowDefinitionStatus.PUBLISHED
+        or not _definition_applies_to_organization(
+            session, definition=definition, organization_id=payload.organization_id
+        )
     ):
         raise WorkflowNotFoundError("Workflow definition not found.")
     initial = [state for state in definition.states if state.is_initial]
     if len(initial) != 1:
         raise WorkflowConflictError("Published workflow definition is invalid.")
     duplicate = session.scalar(
-        select(WorkflowInstance.id).where(
+        select(WorkflowInstance.id)
+        .where(
             WorkflowInstance.definition_id == definition.id,
             WorkflowInstance.organization_id == payload.organization_id,
             WorkflowInstance.resource_type == payload.resource_type,
             WorkflowInstance.resource_id == payload.resource_id,
-        ).limit(1)
+        )
+        .limit(1)
     )
     if duplicate is not None:
-        raise WorkflowConflictError("This resource already has an instance for this workflow version.")
+        raise WorkflowConflictError(
+            "This resource already has an instance for this workflow version."
+        )
     now = datetime.now(UTC)
     initial_state = initial[0]
     instance = WorkflowInstance(
@@ -744,7 +816,9 @@ def start_instance(
         resource_type=payload.resource_type,
         resource_id=payload.resource_id,
         current_state=initial_state,
-        status=WorkflowInstanceStatus.COMPLETED if initial_state.is_terminal else WorkflowInstanceStatus.ACTIVE,
+        status=WorkflowInstanceStatus.COMPLETED
+        if initial_state.is_terminal
+        else WorkflowInstanceStatus.ACTIVE,
         started_by=actor,
         completed_at=now if initial_state.is_terminal else None,
     )
@@ -770,7 +844,11 @@ def start_instance(
 
 
 def _get_instance(session: Session, instance_id: UUID, *, lock: bool = False) -> WorkflowInstance:
-    statement = select(WorkflowInstance).where(WorkflowInstance.id == instance_id).options(*_instance_options())
+    statement = (
+        select(WorkflowInstance)
+        .where(WorkflowInstance.id == instance_id)
+        .options(*_instance_options())
+    )
     if lock:
         statement = statement.with_for_update()
     instance = session.scalar(statement)
@@ -796,18 +874,28 @@ def list_instances_for_user(
         permission_code=WORKFLOW_READ,
         organization_id=organization_id,
     )
-    statement = select(WorkflowInstance).where(WorkflowInstance.organization_id == organization_id).options(*_instance_options())
+    statement = (
+        select(WorkflowInstance)
+        .where(WorkflowInstance.organization_id == organization_id)
+        .options(*_instance_options())
+    )
     if resource_type is not None:
         statement = statement.where(WorkflowInstance.resource_type == resource_type.strip().lower())
     if resource_id is not None:
         statement = statement.where(WorkflowInstance.resource_id == resource_id.strip())
     if status is not None:
         statement = statement.where(WorkflowInstance.status == status)
-    statement = statement.order_by(WorkflowInstance.created_at.desc(), WorkflowInstance.id.desc()).offset(offset).limit(limit)
+    statement = (
+        statement.order_by(WorkflowInstance.created_at.desc(), WorkflowInstance.id.desc())
+        .offset(offset)
+        .limit(limit)
+    )
     return list(session.scalars(statement).all())
 
 
-def get_instance_for_user(session: Session, *, user_id: UUID, instance_id: UUID) -> WorkflowInstance:
+def get_instance_for_user(
+    session: Session, *, user_id: UUID, instance_id: UUID
+) -> WorkflowInstance:
     instance = _get_instance(session, instance_id)
     if not has_permission(
         session,
@@ -873,7 +961,10 @@ def transition_instance(
         resource_type="workflow_instance",
         resource_id=instance.id,
         before_state=before,
-        after_state={"current_state_id": str(instance.current_state_id), "status": instance.status.value},
+        after_state={
+            "current_state_id": str(instance.current_state_id),
+            "status": instance.status.value,
+        },
         metadata={"transition_id": str(transition.id), "transition_code": transition.code},
     )
     session.flush()

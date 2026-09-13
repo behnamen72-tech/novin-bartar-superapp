@@ -187,7 +187,6 @@ def list_crm_organizations_for_user(
     ]
 
 
-
 def list_assignees_for_user(
     session: Session,
     *,
@@ -229,6 +228,7 @@ def list_assignees_for_user(
             }
         )
     return result
+
 
 def list_customers_for_user(
     session: Session,
@@ -355,9 +355,7 @@ def create_customer(
         session.flush()
     except IntegrityError as exc:
         session.rollback()
-        raise CRMConflictError(
-            "CRM customer already exists for this organization."
-        ) from exc
+        raise CRMConflictError("CRM customer already exists for this organization.") from exc
     record_audit_event(
         session,
         actor=actor,
@@ -780,9 +778,7 @@ def update_note(
     note_id: UUID,
     payload: CustomerNoteUpdateRequest,
 ) -> CustomerNote:
-    note = session.scalar(
-        select(CustomerNote).where(CustomerNote.id == note_id).with_for_update()
-    )
+    note = session.scalar(select(CustomerNote).where(CustomerNote.id == note_id).with_for_update())
     if note is None or note.customer_crm_record_id != customer_id:
         raise CRMNotFoundError("Customer note not found.")
     customer = _get_customer(session, customer_id)

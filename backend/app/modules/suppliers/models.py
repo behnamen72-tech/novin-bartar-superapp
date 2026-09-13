@@ -55,7 +55,10 @@ class SupplierProfile(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         ForeignKey("organizations.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     supplier_kind: Mapped[SupplierKind] = mapped_column(
-        SAEnum(SupplierKind, name="supplier_kind"), nullable=False, default=SupplierKind.COMPANY, index=True
+        SAEnum(SupplierKind, name="supplier_kind"),
+        nullable=False,
+        default=SupplierKind.COMPANY,
+        index=True,
     )
     display_name: Mapped[str] = mapped_column(String(200), nullable=False)
     commercial_status: Mapped[SupplierCommercialStatus] = mapped_column(
@@ -65,7 +68,10 @@ class SupplierProfile(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         index=True,
     )
     source: Mapped[SupplierSource] = mapped_column(
-        SAEnum(SupplierSource, name="supplier_source"), nullable=False, default=SupplierSource.MANUAL, index=True
+        SAEnum(SupplierSource, name="supplier_source"),
+        nullable=False,
+        default=SupplierSource.MANUAL,
+        index=True,
     )
     assigned_owner_user_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT"), nullable=True, index=True
@@ -77,7 +83,9 @@ class SupplierProfile(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
     organization: Mapped[Organization] = relationship("Organization")
-    assigned_owner: Mapped[User | None] = relationship("User", foreign_keys=[assigned_owner_user_id])
+    assigned_owner: Mapped[User | None] = relationship(
+        "User", foreign_keys=[assigned_owner_user_id]
+    )
     created_by: Mapped[User] = relationship("User", foreign_keys=[created_by_user_id])
     representatives: Mapped[list[SupplierRepresentative]] = relationship(
         "SupplierRepresentative", back_populates="supplier", cascade="all, delete-orphan"
@@ -117,7 +125,9 @@ class SupplierRepresentative(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
-    supplier: Mapped[SupplierProfile] = relationship("SupplierProfile", back_populates="representatives")
+    supplier: Mapped[SupplierProfile] = relationship(
+        "SupplierProfile", back_populates="representatives"
+    )
 
 
 class SupplierTag(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -183,7 +193,10 @@ class SupplierExternalReference(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "supplier_external_references"
     __table_args__ = (
         UniqueConstraint(
-            "organization_id", "system", "normalized_external_id", name="uq_supplier_external_ref_org_system_id"
+            "organization_id",
+            "system",
+            "normalized_external_id",
+            name="uq_supplier_external_ref_org_system_id",
         ),
         Index("ix_supplier_external_refs_supplier", "supplier_id", "system"),
     )
@@ -203,7 +216,9 @@ class SupplierExternalReference(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True
     )
 
-    supplier: Mapped[SupplierProfile] = relationship("SupplierProfile", back_populates="external_references")
+    supplier: Mapped[SupplierProfile] = relationship(
+        "SupplierProfile", back_populates="external_references"
+    )
     organization: Mapped[Organization] = relationship("Organization")
     created_by: Mapped[User] = relationship("User")
 

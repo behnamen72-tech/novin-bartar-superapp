@@ -60,7 +60,9 @@ class DocumentCategory(UUIDPrimaryKeyMixin, TimestampMixin, Base):
             "code",
             name="uq_document_category_org_code",
         ),
-        CheckConstraint("parent_id IS NULL OR parent_id <> id", name="ck_document_category_parent_not_self"),
+        CheckConstraint(
+            "parent_id IS NULL OR parent_id <> id", name="ck_document_category_parent_not_self"
+        ),
         Index("ix_document_categories_org_active", "organization_id", "is_active"),
         Index("ix_document_categories_parent_active", "parent_id", "is_active"),
     )

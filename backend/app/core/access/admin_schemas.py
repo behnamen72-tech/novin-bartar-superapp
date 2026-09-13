@@ -114,7 +114,11 @@ class AccessAssignmentCreateRequest(BaseModel):
 
     @model_validator(mode="after")
     def validate_time_window(self) -> "AccessAssignmentCreateRequest":
-        if self.starts_at is not None and self.ends_at is not None and self.ends_at <= self.starts_at:
+        if (
+            self.starts_at is not None
+            and self.ends_at is not None
+            and self.ends_at <= self.starts_at
+        ):
             raise ValueError("ends_at must be later than starts_at.")
         return self
 
