@@ -1,0 +1,92 @@
+name: Strict Mypy Remediation V3
+
+on:
+  push:
+    branches:
+      - ci/strict-mypy-remediation
+    paths:
+      - .github/workflows/strict-mypy-remediation-v3.yml
+
+permissions:
+  contents: write
+
+jobs:
+  remediate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: Apply reviewed targeted remediation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import textwrap
+
+          workflow = Path('.github/workflows/strict-mypy-remediation-v2.yml').read_text(encoding='utf-8')
+          start_marker = "          python - <<'PY'\n"
+          end_marker = "\n          PY\n"
+          start = workflow.index(start_marker) + len(start_marker)
+          end = workflow.index(end_marker, start)
+          script = textwrap.dedent(workflow[start:end])
+          exec(compile(script, '<strict-mypy-remediation-v2>', 'exec'), {'__name__': '__main__'})
+
+          workflow_service = Path('backend/app/core/workflow/service.py')
+          text = workflow_service.read_text(encoding='utf-8')
+          old_import = 'from sqlalchemy.orm import Load, Session, selectinload'
+          new_import = (
+              'from sqlalchemy.orm import Session, selectinload\n'
+              'from sqlalchemy.orm.interfaces import LoaderOption'
+          )
+          if text.count(old_import) != 1:
+              raise SystemExit('workflow service: expected Load import exactly once')
+          text = text.replace(old_import, new_import, 1)
+          if text.count('tuple[Load, ...]') != 2:
+              raise SystemExit('workflow service: expected two Load tuple annotations')
+          text = text.replace('tuple[Load, ...]', 'tuple[LoaderOption, ...]')
+          workflow_service.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Ruff format and lint
+        working-directory: backend
+        run: |
+          ruff format app tests
+          ruff check app tests
+
+      - name: Strict MyPy
+        working-directory: backend
+        run: mypy app
+
+      - name: Compile Python sources
+        working-directory: backend
+        run: python -m compileall -q app
+
+      - name: Run all backend tests in isolated processes
+        run: bash scripts/ci/backend-tests.sh
+
+      - name: Commit validated backend remediation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "No backend changes to commit."
+            exit 0
+          fi
+          git commit -m "ci: satisfy strict backend lint and typing gates"
+          git push origin HEAD:ci/strict-mypy-remediation
