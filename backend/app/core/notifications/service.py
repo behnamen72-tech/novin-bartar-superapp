@@ -225,6 +225,8 @@ def mark_all_notifications_read(session: Session, *, user_id: UUID) -> int:
             Notification.read_at.is_(None),
         )
         .values(read_at=now)
+        .returning(Notification.id)
     )
+    updated_ids = result.scalars().all()
     session.commit()
-    return int(getattr(result, "rowcount", 0) or 0)
+    return len(updated_ids)
