@@ -40,7 +40,7 @@ def _translate_error(exc: Exception) -> HTTPException:
         return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied.")
     if isinstance(exc, (PersonNotFoundError, PersonRelationshipNotFoundError)):
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
-    if isinstance(exc, PersonConflictError) or isinstance(exc, IntegrityError):
+    if isinstance(exc, (PersonConflictError, IntegrityError)):
         return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
     if isinstance(exc, ValueError):
         return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))

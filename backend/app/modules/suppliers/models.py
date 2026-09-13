@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID
 
 from sqlalchemy import Boolean, ForeignKey, Index, Integer, String, UniqueConstraint, text
@@ -11,13 +11,13 @@ from app.db.base import Base
 from app.db.mixins import TimestampMixin, UUIDPrimaryKeyMixin
 
 
-class SupplierKind(str, Enum):
+class SupplierKind(StrEnum):
     COMPANY = "company"
     INDIVIDUAL = "individual"
     OTHER = "other"
 
 
-class SupplierCommercialStatus(str, Enum):
+class SupplierCommercialStatus(StrEnum):
     PROSPECT = "prospect"
     ACTIVE = "active"
     INACTIVE = "inactive"
@@ -25,7 +25,7 @@ class SupplierCommercialStatus(str, Enum):
     ARCHIVED = "archived"
 
 
-class SupplierSource(str, Enum):
+class SupplierSource(StrEnum):
     MANUAL = "manual"
     IMPORT = "import"
     ACCOUNTING_REFERENCE = "accounting_reference"
@@ -33,7 +33,7 @@ class SupplierSource(str, Enum):
     OTHER = "other"
 
 
-class SupplierExternalSystem(str, Enum):
+class SupplierExternalSystem(StrEnum):
     ACCOUNTING = "accounting"
     ERP = "erp"
     PROCUREMENT = "procurement"

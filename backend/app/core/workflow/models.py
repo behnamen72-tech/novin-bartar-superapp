@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID
 
 from sqlalchemy import (
@@ -25,13 +25,13 @@ from app.db.base import Base
 from app.db.mixins import TimestampMixin, UUIDPrimaryKeyMixin
 
 
-class WorkflowDefinitionStatus(str, Enum):
+class WorkflowDefinitionStatus(StrEnum):
     DRAFT = "draft"
     PUBLISHED = "published"
     RETIRED = "retired"
 
 
-class WorkflowInstanceStatus(str, Enum):
+class WorkflowInstanceStatus(StrEnum):
     ACTIVE = "active"
     COMPLETED = "completed"
     CANCELLED = "cancelled"

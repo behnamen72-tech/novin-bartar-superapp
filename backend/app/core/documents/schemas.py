@@ -1,5 +1,5 @@
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -301,7 +301,7 @@ class RetentionPolicyResponse(BaseModel):
     updated_at: datetime
 
 
-class DocumentExpirationState(str, Enum):
+class DocumentExpirationState(StrEnum):
     ACTIVE = "active"
     EXPIRING_SOON = "expiring_soon"
     EXPIRED = "expired"

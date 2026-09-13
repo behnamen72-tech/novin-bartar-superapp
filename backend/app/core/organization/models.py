@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID
 
 from sqlalchemy import Boolean, CheckConstraint, ForeignKey, String
@@ -11,7 +11,7 @@ from app.db.base import Base
 from app.db.mixins import TimestampMixin, UUIDPrimaryKeyMixin
 
 
-class OrganizationType(str, Enum):
+class OrganizationType(StrEnum):
     HOLDING = "holding"
     COMPANY = "company"
     BRANCH = "branch"

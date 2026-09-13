@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID
 
 from sqlalchemy import Boolean, ForeignKey, Index, Integer, String, UniqueConstraint
@@ -11,7 +11,7 @@ from app.db.base import Base
 from app.db.mixins import TimestampMixin, UUIDPrimaryKeyMixin
 
 
-class CustomerType(str, Enum):
+class CustomerType(StrEnum):
     INDIVIDUAL = "individual"
     HOUSEHOLD = "household"
     BUSINESS = "business"
@@ -20,7 +20,7 @@ class CustomerType(str, Enum):
     OTHER = "other"
 
 
-class CommercialStatus(str, Enum):
+class CommercialStatus(StrEnum):
     PROSPECT = "prospect"
     ACTIVE = "active"
     INACTIVE = "inactive"
@@ -28,7 +28,7 @@ class CommercialStatus(str, Enum):
     ARCHIVED = "archived"
 
 
-class CustomerSource(str, Enum):
+class CustomerSource(StrEnum):
     MANUAL = "manual"
     COMMERCE_ACTIVITY = "commerce_activity"
     PHONE_ORDER = "phone_order"

@@ -39,7 +39,7 @@ def _translate_write_error(exc: Exception) -> HTTPException:
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
     if isinstance(exc, OrganizationConflictError):
         return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
-    if isinstance(exc, OrganizationValidationError) or isinstance(exc, ValueError):
+    if isinstance(exc, (OrganizationValidationError, ValueError)):
         return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
     if isinstance(exc, IntegrityError):
         return HTTPException(

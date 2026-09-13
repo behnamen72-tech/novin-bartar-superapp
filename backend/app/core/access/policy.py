@@ -17,9 +17,7 @@ def _is_assignment_current(assignment: UserRoleAssignment, now: datetime) -> boo
         return False
     if assignment.starts_at is not None and assignment.starts_at > now:
         return False
-    if assignment.ends_at is not None and assignment.ends_at <= now:
-        return False
-    return True
+    return not (assignment.ends_at is not None and assignment.ends_at <= now)
 
 
 def _organization_is_in_scope(

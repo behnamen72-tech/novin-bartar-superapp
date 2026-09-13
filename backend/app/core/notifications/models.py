@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID
 
 from sqlalchemy import DateTime, ForeignKey, Index, String, Text, UniqueConstraint, func
@@ -12,7 +12,7 @@ from app.db.base import Base
 from app.db.mixins import UUIDPrimaryKeyMixin
 
 
-class NotificationSeverity(str, Enum):
+class NotificationSeverity(StrEnum):
     INFO = "info"
     SUCCESS = "success"
     WARNING = "warning"

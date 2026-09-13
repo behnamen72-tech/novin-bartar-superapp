@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID
 
 from sqlalchemy import (
@@ -23,7 +23,7 @@ from app.db.base import Base
 from app.db.mixins import TimestampMixin, UUIDPrimaryKeyMixin
 
 
-class EmploymentType(str, Enum):
+class EmploymentType(StrEnum):
     PERMANENT = "permanent"
     FIXED_TERM = "fixed_term"
     PART_TIME = "part_time"

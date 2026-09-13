@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID
 
 from sqlalchemy import (
@@ -21,20 +21,20 @@ from app.db.base import Base
 from app.db.mixins import TimestampMixin, UUIDPrimaryKeyMixin
 
 
-class DocumentStatus(str, Enum):
+class DocumentStatus(StrEnum):
     ACTIVE = "active"
     ARCHIVED = "archived"
     DISABLED = "disabled"
 
 
-class DocumentPriority(str, Enum):
+class DocumentPriority(StrEnum):
     LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
     CRITICAL = "critical"
 
 
-class DocumentLinkEntityType(str, Enum):
+class DocumentLinkEntityType(StrEnum):
     # B5.3 intentionally enables only targets whose domain tables and
     # organization-membership rules already exist. New business modules can add
     # their entity type here together with a validator in documents.service.
@@ -42,12 +42,12 @@ class DocumentLinkEntityType(str, Enum):
     PERSON = "person"
 
 
-class DocumentPermissionType(str, Enum):
+class DocumentPermissionType(StrEnum):
     READ = "read"
     MANAGE = "manage"
 
 
-class RetentionBasis(str, Enum):
+class RetentionBasis(StrEnum):
     CREATED_AT = "created_at"
     EXPIRES_AT = "expires_at"
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, UniqueConstraint
@@ -12,7 +12,7 @@ from app.db.base import Base
 from app.db.mixins import TimestampMixin, UUIDPrimaryKeyMixin
 
 
-class OrganizationScopeMode(str, Enum):
+class OrganizationScopeMode(StrEnum):
     SELF = "self"
     SELF_AND_DESCENDANTS = "self_and_descendants"
 

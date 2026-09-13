@@ -1,10 +1,10 @@
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
 
-class SearchEntityType(str, Enum):
+class SearchEntityType(StrEnum):
     ORGANIZATION = "organization"
     PERSON = "person"
     DOCUMENT = "document"
