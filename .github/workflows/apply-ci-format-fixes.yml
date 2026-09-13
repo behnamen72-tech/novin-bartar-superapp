@@ -1,4 +1,4 @@
-name: Apply CI Format Fixes
+name: Apply CI Ruff Mechanical Fixes
 
 on:
   push:
@@ -31,66 +31,22 @@ jobs:
         working-directory: backend
         run: python -m pip install --upgrade pip && pip install -r requirements.txt
 
-      - name: Apply Ruff formatter only
+      - name: Apply only Ruff-provided fixes
         working-directory: backend
-        run: ruff format app tests
-
-      - name: Apply exact AsyncState prop fix
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('frontend/components/modules/SupplierFoundationView.tsx')
-          text = path.read_text(encoding='utf-8')
-          old = '<AsyncState title="در حال آماده‌سازی تأمین‌کنندگان..." />'
-          new = '<AsyncState label="در حال آماده‌سازی تأمین‌کنندگان..." />'
-          count = text.count(old)
-          if count != 1:
-              raise SystemExit(f'expected exactly one AsyncState title occurrence, found {count}')
-          path.write_text(text.replace(old, new, 1), encoding='utf-8')
-          PY
+          ruff check app tests --fix --unsafe-fixes || true
+          ruff format app tests
 
-      - name: Validate diff
+      - name: Validate generated diff
         run: |
           git diff --check
           git diff --stat
-          git diff -- frontend/components/modules/SupplierFoundationView.tsx
+          test -n "$(git diff --name-only -- backend/app backend/tests)"
 
-      - name: Commit and push with diagnostic log
+      - name: Commit and push mechanical fixes
         run: |
-          exec > >(tee ci-format-operation.log) 2>&1
-          set +e
-          echo '--- pre-add status ---'
-          git status --short
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add backend/app backend/tests frontend/components/modules/SupplierFoundationView.tsx
-          echo '--- staged status ---'
-          git status --short
-          git commit -m 'ci: format backend and fix AsyncState prop'
-          commit_rc=$?
-          echo "commit_rc=$commit_rc"
-          git rev-parse HEAD
-          if [[ $commit_rc -eq 0 ]]; then
-            git push origin HEAD:main
-            push_rc=$?
-          else
-            push_rc=99
-          fi
-          echo "push_rc=$push_rc"
-          printf 'COMMIT_RC=%s\nPUSH_RC=%s\n' "$commit_rc" "$push_rc" > ci-format-status.env
-          exit 0
-
-      - name: Upload operation evidence
-        uses: actions/upload-artifact@v4
-        with:
-          name: ci-format-operation
-          path: |
-            ci-format-operation.log
-            ci-format-status.env
-          if-no-files-found: error
-
-      - name: Require commit and push success
-        run: |
-          source ci-format-status.env
-          test "$COMMIT_RC" -eq 0
-          test "$PUSH_RC" -eq 0
+          git add backend/app backend/tests
+          git commit -m 'ci: apply Ruff mechanical fixes'
+          git push origin HEAD:main
