@@ -203,6 +203,7 @@ jobs:
         working-directory: backend
         run: |
           ruff format app tests
+          ruff check --fix --select I001 app/main.py
           ruff check app tests
           python -m compileall -q app
 
