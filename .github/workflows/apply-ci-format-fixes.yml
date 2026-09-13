@@ -1,0 +1,68 @@
+name: Apply CI Format Fixes
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/apply-ci-format-fixes.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply-fixes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: Apply Ruff formatter only
+        working-directory: backend
+        run: ruff format app tests
+
+      - name: Apply exact AsyncState prop fix
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('frontend/components/modules/SupplierFoundationView.tsx')
+          text = path.read_text(encoding='utf-8')
+          old = '<AsyncState title="در حال آماده‌سازی تأمین‌کنندگان..." />'
+          new = '<AsyncState label="در حال آماده‌سازی تأمین‌کنندگان..." />'
+          count = text.count(old)
+          if count != 1:
+              raise SystemExit(f'expected exactly one AsyncState title occurrence, found {count}')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+
+      - name: Validate diff
+        run: |
+          git diff --check
+          git diff --stat
+          git diff -- frontend/components/modules/SupplierFoundationView.tsx
+
+      - name: Commit formatting and exact frontend fix
+        run: |
+          if git diff --quiet; then
+            echo 'No changes produced.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add backend/app backend/tests frontend/components/modules/SupplierFoundationView.tsx
+          git commit -m 'ci: format backend and fix AsyncState prop'
+          git push
