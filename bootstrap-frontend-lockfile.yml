@@ -1,0 +1,40 @@
+name: Bootstrap Frontend Lockfile
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate-lockfile:
+    name: Generate package-lock.json
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: https://registry.npmjs.org
+
+      - name: Generate npm lockfile
+        working-directory: frontend
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Validate lockfile
+        working-directory: frontend
+        run: |
+          test -s package-lock.json
+          npm ci --ignore-scripts
+
+      - name: Upload generated package-lock.json
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-package-lock
+          path: frontend/package-lock.json
+          if-no-files-found: error
+          retention-days: 7
