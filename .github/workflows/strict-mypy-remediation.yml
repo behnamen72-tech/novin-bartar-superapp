@@ -1,0 +1,292 @@
+name: Strict Mypy Remediation
+
+on:
+  push:
+    branches:
+      - ci/strict-mypy-remediation
+    paths:
+      - .github/workflows/strict-mypy-remediation.yml
+
+permissions:
+  contents: write
+
+jobs:
+  remediate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: Apply targeted lint and typing remediations
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace(path: str, old: str, new: str, *, count: int = 1) -> None:
+              p = Path(path)
+              text = p.read_text(encoding="utf-8")
+              found = text.count(old)
+              if found != count:
+                  raise SystemExit(f"{path}: expected {count} matches, found {found}: {old!r}")
+              p.write_text(text.replace(old, new, count), encoding="utf-8")
+
+          # Remaining Ruff findings: FastAPI Annotated parameters and formatting-only lines.
+          replace(
+              "backend/app/api/v1/routes/documents.py",
+              "    document_type: str | None = Query(default=None, max_length=100),",
+              "    document_type: Annotated[str | None, Query(max_length=100)] = None,",
+          )
+          replace(
+              "backend/app/api/v1/routes/documents.py",
+              '    document_status: DocumentStatus | None = Query(default=None, alias="status"),',
+              '    document_status: Annotated[DocumentStatus | None, Query(alias="status")] = None,',
+          )
+          replace(
+              "backend/app/api/v1/routes/documents.py",
+              "    entity_type: DocumentLinkEntityType | None = Query(default=None),",
+              "    entity_type: Annotated[DocumentLinkEntityType | None, Query()] = None,",
+          )
+          replace(
+              "backend/app/api/v1/routes/documents.py",
+              "    entity_id: UUID | None = Query(default=None),",
+              "    entity_id: Annotated[UUID | None, Query()] = None,",
+          )
+          replace(
+              "backend/app/api/v1/routes/documents.py",
+              "    q: str | None = Query(default=None, min_length=1, max_length=200),",
+              "    q: Annotated[str | None, Query(min_length=1, max_length=200)] = None,",
+          )
+          replace(
+              "backend/app/api/v1/routes/workflow.py",
+              '    instance_status: WorkflowInstanceStatus | None = Query(default=None, alias="status"),',
+              '    instance_status: Annotated[WorkflowInstanceStatus | None, Query(alias="status")] = None,',
+          )
+          replace(
+              "backend/app/core/access/admin_service.py",
+              '                "Cannot reactivate access without an active person relationship at the assignment organization."',
+              '                "Cannot reactivate access without an active person relationship "\n                "at the assignment organization."',
+          )
+          replace(
+              "backend/app/core/config.py",
+              '                "COMMERCE_INTEGRATION_JWT_SECRET must be a dedicated random secret of at least 32 characters."',
+              '                "COMMERCE_INTEGRATION_JWT_SECRET must be a dedicated random secret "\n                "of at least 32 characters."',
+          )
+          replace(
+              "backend/app/core/documents/service.py",
+              "        raise original_error",
+              "        raise original_error from None",
+          )
+          replace(
+              "backend/app/core/people/service.py",
+              '                    "Deactivate access assignments rooted at this organization before deactivating the person\'s relationship."',
+              '                    "Deactivate access assignments rooted at this organization before "\n                    "deactivating the person\'s relationship."',
+          )
+          replace(
+              "backend/app/core/search/service.py",
+              '                subtitle=f"{document.document_type} · {document.status.value if hasattr(document.status, \'value\') else document.status}",',
+              '                subtitle=(\n                    f"{document.document_type} · "\n                    f"{getattr(document.status, \'value\', document.status)}"\n                ),',
+          )
+          replace(
+              "backend/app/modules/hr/permissions.py",
+              '        "View HR job profiles, planned positions, and employment records within authorized organization scope.",',
+              '        "View HR job profiles, planned positions, and employment records within "\n        "authorized organization scope.",',
+          )
+          replace(
+              "backend/app/modules/hr/permissions.py",
+              '        "Create and manage HR job profiles, positions, and employment records within authorized organization scope.",',
+              '        "Create and manage HR job profiles, positions, and employment records within "\n        "authorized organization scope.",',
+          )
+          replace(
+              "backend/app/modules/hr/service.py",
+              '            "Person must have an active relationship with the organization before an employment record can be created."',
+              '            "Person must have an active relationship with the organization before "\n            "an employment record can be created."',
+          )
+          replace(
+              "backend/tests/test_hr_api.py",
+              "def test_employment_relationship_dates_support_future_planning_without_exposing_not_yet_active_people(",
+              "def test_future_employment_relationship_does_not_expose_not_yet_active_people(",
+          )
+
+          # Audit accepts read-only mappings: fixes dict invariance without weakening value types.
+          replace(
+              "backend/app/core/audit/security.py",
+              "from datetime import date, datetime\nfrom enum import Enum",
+              "from collections.abc import Mapping\nfrom datetime import date, datetime\nfrom enum import Enum",
+          )
+          replace(
+              "backend/app/core/audit/security.py",
+              "    if isinstance(value, dict):",
+              "    if isinstance(value, Mapping):",
+          )
+          replace(
+              "backend/app/core/audit/security.py",
+              "    payload: dict[str, object] | None,",
+              "    payload: Mapping[str, object] | None,",
+          )
+          replace(
+              "backend/app/core/audit/service.py",
+              "from uuid import UUID",
+              "from collections.abc import Mapping\nfrom uuid import UUID",
+          )
+          for field in ("before_state", "after_state", "metadata"):
+              replace(
+                  "backend/app/core/audit/service.py",
+                  f"    {field}: dict[str, object] | None = None,",
+                  f"    {field}: Mapping[str, object] | None = None,",
+              )
+
+          # SQLAlchemy statement helpers: preserve ORM result types under strict MyPy.
+          statement_helpers = [
+              ("backend/app/modules/suppliers/service.py", "from sqlalchemy import select", "from sqlalchemy import Select, select", "def _supplier_statement(supplier_id: UUID, *, for_update: bool = False):", "def _supplier_statement(\n    supplier_id: UUID, *, for_update: bool = False\n) -> Select[tuple[SupplierProfile]]:"),
+              ("backend/app/modules/hr/service.py", "from sqlalchemy import or_, select", "from sqlalchemy import Select, or_, select", "def _position_statement(position_id: UUID, *, for_update: bool = False):", "def _position_statement(\n    position_id: UUID, *, for_update: bool = False\n) -> Select[tuple[HRPosition]]:"),
+              ("backend/app/core/people/service.py", "from sqlalchemy import func, or_, select", "from sqlalchemy import Select, func, or_, select", "def _person_statement(person_id: UUID, *, for_update: bool = False):", "def _person_statement(\n    person_id: UUID, *, for_update: bool = False\n) -> Select[tuple[Person]]:"),
+              ("backend/app/core/identity/admin_service.py", "from sqlalchemy import func, select", "from sqlalchemy import Select, func, select", "def _user_statement(user_id: UUID, *, for_update: bool = False):", "def _user_statement(\n    user_id: UUID, *, for_update: bool = False\n) -> Select[tuple[User]]:"),
+              ("backend/app/core/access/admin_service.py", "from sqlalchemy import select", "from sqlalchemy import Select, select", "def _role_statement(role_id: UUID, *, for_update: bool = False):", "def _role_statement(\n    role_id: UUID, *, for_update: bool = False\n) -> Select[tuple[Role]]:"),
+              ("backend/app/modules/customers/service.py", "from sqlalchemy import or_, select", "from sqlalchemy import Select, or_, select", "def _customer_statement(customer_id: UUID, *, for_update: bool = False):", "def _customer_statement(\n    customer_id: UUID, *, for_update: bool = False\n) -> Select[tuple[CustomerCRMRecord]]:"),
+          ]
+          for path, old_import, new_import, old_sig, new_sig in statement_helpers:
+              replace(path, old_import, new_import)
+              replace(path, old_sig, new_sig)
+
+          replace(
+              "backend/app/modules/hr/service.py",
+              "def _employment_statement(employment_id: UUID, *, for_update: bool = False):",
+              "def _employment_statement(\n    employment_id: UUID, *, for_update: bool = False\n) -> Select[tuple[HREmployment]]:",
+          )
+
+          # Workflow loader helpers have a concrete SQLAlchemy return type.
+          replace(
+              "backend/app/core/workflow/service.py",
+              "from sqlalchemy.orm import Session, selectinload",
+              "from sqlalchemy.orm import Load, Session, selectinload",
+          )
+          replace(
+              "backend/app/core/workflow/service.py",
+              "def _definition_options():",
+              "def _definition_options() -> tuple[Load, ...]:",
+          )
+          replace(
+              "backend/app/core/workflow/service.py",
+              "def _instance_options():",
+              "def _instance_options() -> tuple[Load, ...]:",
+          )
+
+          # Notification typing.
+          replace(
+              "backend/app/core/notifications/events.py",
+              "from sqlalchemy import event, inspect",
+              "from typing import Any\n\nfrom sqlalchemy import event, inspect",
+          )
+          replace(
+              "backend/app/core/notifications/events.py",
+              "def prevent_notification_content_mutation(mapper, connection, target: Notification) -> None:",
+              "def prevent_notification_content_mutation(\n    mapper: Any, connection: Any, target: Notification\n) -> None:",
+          )
+          replace(
+              "backend/app/core/notifications/events.py",
+              "def prevent_notification_delete(mapper, connection, target: Notification) -> None:",
+              "def prevent_notification_delete(\n    mapper: Any, connection: Any, target: Notification\n) -> None:",
+          )
+          replace(
+              "backend/app/core/notifications/service.py",
+              "    return int(result.rowcount or 0)",
+              '    return int(getattr(result, "rowcount", 0) or 0)',
+          )
+
+          # Import the policy symbol from its defining module instead of relying on implicit re-export.
+          replace(
+              "backend/app/core/access/admin_service.py",
+              "    has_permission,\n    require_permission_for_organization,",
+              "    has_permission,\n    organization_is_in_scope,\n    require_permission_for_organization,",
+          )
+          replace(
+              "backend/app/core/access/admin_service.py",
+              "    organization_ids_in_scope,\n    organization_is_in_scope,",
+              "    organization_ids_in_scope,",
+          )
+
+          # Typed API response adapters.
+          replace(
+              "backend/app/api/v1/routes/suppliers.py",
+              "from app.modules.suppliers.permissions import SUPPLIER_REPRESENTATIVE_CONTACT_READ",
+              "from app.modules.suppliers.models import SupplierProfile, SupplierRepresentative\nfrom app.modules.suppliers.permissions import SUPPLIER_REPRESENTATIVE_CONTACT_READ",
+          )
+          replace(
+              "backend/app/api/v1/routes/suppliers.py",
+              "def _supplier_response(item) -> SupplierResponse:",
+              "def _supplier_response(item: SupplierProfile) -> SupplierResponse:",
+          )
+          replace(
+              "backend/app/api/v1/routes/suppliers.py",
+              "    representative,\n) -> SupplierRepresentativeResponse:",
+              "    representative: SupplierRepresentative,\n) -> SupplierRepresentativeResponse:",
+          )
+          replace(
+              "backend/app/api/v1/routes/customers.py",
+              "from app.db.session import get_db",
+              "from app.db.session import get_db\nfrom app.modules.customers.models import CustomerCRMRecord",
+          )
+          replace(
+              "backend/app/api/v1/routes/customers.py",
+              "def _customer_response(item) -> CustomerCRMResponse:",
+              "def _customer_response(item: CustomerCRMRecord) -> CustomerCRMResponse:",
+          )
+
+          # Avoid shadowing the imported top-level `app` module in strict MyPy.
+          replace(
+              "backend/app/main.py",
+              "import app.db.session  # noqa: E402,F401",
+              "from app.db import session as _db_session  # noqa: F401",
+          )
+
+          # The variable is reused with a wider shape later in the function.
+          replace(
+              "backend/app/modules/hr/service.py",
+              '            before = {"end_date": employment.end_date.isoformat() if employment.end_date else None}',
+              '            before: dict[str, object] = {\n                "end_date": employment.end_date.isoformat() if employment.end_date else None\n            }',
+          )
+          PY
+
+      - name: Ruff format and lint
+        working-directory: backend
+        run: |
+          ruff format app tests
+          ruff check app tests
+
+      - name: Strict MyPy
+        working-directory: backend
+        run: mypy app
+
+      - name: Compile Python sources
+        working-directory: backend
+        run: python -m compileall -q app
+
+      - name: Run all backend tests in isolated processes
+        run: bash scripts/ci/backend-tests.sh
+
+      - name: Commit validated remediation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "No backend changes to commit."
+            exit 0
+          fi
+          git commit -m "ci: satisfy strict backend lint and typing gates"
+          git push origin HEAD:ci/strict-mypy-remediation
