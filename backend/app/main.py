@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-import app.db.session  # noqa: E402,F401
 from app.api.v1.router import api_router
 from app.core.config import settings
+from app.db import session as _db_session  # noqa: E402,F401
 
 
 def create_app() -> FastAPI:

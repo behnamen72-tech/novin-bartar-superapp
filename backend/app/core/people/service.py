@@ -2,6 +2,7 @@ from uuid import UUID
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.sql import Select
 
 from app.core.access.permissions import PEOPLE_MANAGE, PEOPLE_READ
 from app.core.access.policy import AuthorizationError, require_permission_for_organization
@@ -33,7 +34,7 @@ class PersonConflictError(ValueError):
     pass
 
 
-def _person_statement(person_id: UUID, *, for_update: bool = False):
+def _person_statement(person_id: UUID, *, for_update: bool = False) -> Select[tuple[Person]]:
     statement = (
         select(Person)
         .where(Person.id == person_id)
@@ -455,7 +456,8 @@ def change_person_relationship_status(
             )
             if active_access is not None:
                 raise PersonConflictError(
-                    "Deactivate access assignments rooted at this organization before deactivating the person's relationship."
+                    "Deactivate access assignments rooted at this organization before "
+                    "deactivating the person's relationship."
                 )
 
     before = {"is_active": relationship.is_active}

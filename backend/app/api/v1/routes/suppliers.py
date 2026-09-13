@@ -9,6 +9,7 @@ from app.core.access.policy import AuthorizationError, has_permission
 from app.core.identity.dependencies import get_current_user
 from app.core.identity.models import User
 from app.db.session import get_db
+from app.modules.suppliers.models import SupplierProfile, SupplierRepresentative
 from app.modules.suppliers.permissions import SUPPLIER_REPRESENTATIVE_CONTACT_READ
 from app.modules.suppliers.schemas import (
     SupplierAssigneeOptionResponse,
@@ -78,7 +79,7 @@ def _translate_error(exc: Exception) -> HTTPException:
     raise exc
 
 
-def _supplier_response(item) -> SupplierResponse:
+def _supplier_response(item: SupplierProfile) -> SupplierResponse:
     return SupplierResponse.model_validate(supplier_response_data(item))
 
 
@@ -86,7 +87,7 @@ def _representative_response(
     session: Session,
     *,
     actor_id: UUID,
-    representative,
+    representative: SupplierRepresentative,
 ) -> SupplierRepresentativeResponse:
     supplier = get_supplier_for_user(
         session, user_id=actor_id, supplier_id=representative.supplier_id

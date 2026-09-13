@@ -5,6 +5,7 @@ from uuid import UUID
 from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.sql import Select
 
 from app.core.access.policy import (
     AuthorizationError,
@@ -91,7 +92,9 @@ def _require_resource_permission(
         raise CRMNotFoundError(not_found_message)
 
 
-def _customer_statement(customer_id: UUID, *, for_update: bool = False):
+def _customer_statement(
+    customer_id: UUID, *, for_update: bool = False
+) -> Select[tuple[CustomerCRMRecord]]:
     statement = (
         select(CustomerCRMRecord)
         .where(CustomerCRMRecord.id == customer_id)

@@ -5,6 +5,7 @@ from uuid import UUID
 
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.sql import Select
 
 from app.core.access.models import OrganizationScopeMode
 from app.core.access.policy import (
@@ -146,7 +147,9 @@ def _get_job_profile(
     return profile
 
 
-def _position_statement(position_id: UUID, *, for_update: bool = False):
+def _position_statement(
+    position_id: UUID, *, for_update: bool = False
+) -> Select[tuple[HRPosition]]:
     statement = (
         select(HRPosition)
         .where(HRPosition.id == position_id)
@@ -169,7 +172,9 @@ def _get_position(
     return position
 
 
-def _employment_statement(employment_id: UUID, *, for_update: bool = False):
+def _employment_statement(
+    employment_id: UUID, *, for_update: bool = False
+) -> Select[tuple[HREmployment]]:
     statement = (
         select(HREmployment)
         .where(HREmployment.id == employment_id)
@@ -752,7 +757,8 @@ def _validate_person_for_employment(
     )
     if active_relationship is None:
         raise HRValidationError(
-            "Person must have an active relationship with the organization before an employment record can be created."
+            "Person must have an active relationship with the organization before "
+            "an employment record can be created."
         )
     return person
 
@@ -1030,7 +1036,9 @@ def change_employment_status(
         ):
             if payload.end_date < employment.start_date:
                 raise HRValidationError("end_date cannot be before start_date.")
-            before = {"end_date": employment.end_date.isoformat() if employment.end_date else None}
+            before: dict[str, object] = {
+                "end_date": employment.end_date.isoformat() if employment.end_date else None
+            }
             employment.end_date = payload.end_date
             record_audit_event(
                 session,

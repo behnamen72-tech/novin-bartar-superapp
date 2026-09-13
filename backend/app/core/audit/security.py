@@ -1,3 +1,4 @@
+from collections.abc import Mapping
 from datetime import date, datetime
 from enum import Enum
 from typing import Any
@@ -55,11 +56,11 @@ def sanitize_audit_value(value: Any, *, key: str | None = None) -> Any:
 
 
 def sanitize_audit_payload(
-    payload: dict[str, object] | None,
+    payload: Mapping[str, object] | None,
 ) -> dict[str, object] | None:
     if payload is None:
         return None
-    sanitized = sanitize_audit_value(payload)
+    sanitized = sanitize_audit_value(dict(payload))
     if not isinstance(sanitized, dict):
         raise TypeError("Audit payload must sanitize to a dictionary.")
     return sanitized

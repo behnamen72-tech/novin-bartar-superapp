@@ -9,6 +9,7 @@ from app.core.access.policy import AuthorizationError
 from app.core.identity.dependencies import get_current_user
 from app.core.identity.models import User
 from app.db.session import get_db
+from app.modules.customers.models import CustomerCRMRecord
 from app.modules.customers.schemas import (
     CommerceActivityProjection,
     CRMAssigneeOptionResponse,
@@ -73,7 +74,7 @@ def _translate_error(exc: Exception) -> HTTPException:
     raise exc
 
 
-def _customer_response(item) -> CustomerCRMResponse:
+def _customer_response(item: CustomerCRMRecord) -> CustomerCRMResponse:
     return CustomerCRMResponse.model_validate(customer_response_data(item))
 
 

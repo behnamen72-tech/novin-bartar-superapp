@@ -5,6 +5,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.sql import Select
 
 from app.core.access.policy import (
     AuthorizationError,
@@ -90,7 +91,9 @@ def _require_resource_permission(
         raise SupplierNotFoundError(not_found_message)
 
 
-def _supplier_statement(supplier_id: UUID, *, for_update: bool = False):
+def _supplier_statement(
+    supplier_id: UUID, *, for_update: bool = False
+) -> Select[tuple[SupplierProfile]]:
     statement = (
         select(SupplierProfile)
         .where(SupplierProfile.id == supplier_id)

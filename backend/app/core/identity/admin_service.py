@@ -2,6 +2,7 @@ from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.sql import Select
 
 from app.core.access.permissions import USERS_MANAGE, USERS_READ
 from app.core.access.policy import AuthorizationError, require_permission_for_organization
@@ -27,7 +28,7 @@ class UserAdminConflictError(ValueError):
     pass
 
 
-def _user_statement(user_id: UUID, *, for_update: bool = False):
+def _user_statement(user_id: UUID, *, for_update: bool = False) -> Select[tuple[User]]:
     statement = (
         select(User)
         .where(User.id == user_id)

@@ -3,6 +3,7 @@ from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.sql import Select
 
 from app.core.access.admin_schemas import (
     AccessAssignmentCreateRequest,
@@ -26,13 +27,13 @@ from app.core.access.permissions import ACCESS_MANAGE, ACCESS_READ
 from app.core.access.policy import (
     assignment_is_effective_for_organization,
     has_permission,
+    organization_is_in_scope,
     require_permission_for_organization,
 )
 from app.core.access.service import (
     assert_actor_can_delegate_permission_set,
     authorized_organization_ids,
     organization_ids_in_scope,
-    organization_is_in_scope,
 )
 from app.core.audit.service import record_audit_event
 from app.core.identity.models import User
@@ -52,7 +53,7 @@ class AccessAdminValidationError(ValueError):
     pass
 
 
-def _role_statement(role_id: UUID, *, for_update: bool = False):
+def _role_statement(role_id: UUID, *, for_update: bool = False) -> Select[tuple[Role]]:
     statement = (
         select(Role)
         .where(Role.id == role_id)
@@ -704,7 +705,8 @@ def change_access_assignment_status(
             organization_id=assignment.organization_id,
         ):
             raise AccessAdminConflictError(
-                "Cannot reactivate access without an active person relationship at the assignment organization."
+                "Cannot reactivate access without an active person relationship "
+                "at the assignment organization."
             )
         if assignment.role.organization_id is not None and not organization_is_in_scope(
             session,
