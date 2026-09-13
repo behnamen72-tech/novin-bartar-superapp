@@ -1,6 +1,6 @@
 name: Diagnose CI Failures
 
-# Post-format diagnostic capture for the current main tree.
+# Fresh diagnostic capture after removing the temporary unsafe Ruff workflow.
 on:
   push:
     branches:
