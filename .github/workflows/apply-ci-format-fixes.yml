@@ -55,14 +55,42 @@ jobs:
           git diff --stat
           git diff -- frontend/components/modules/SupplierFoundationView.tsx
 
-      - name: Commit formatting and exact frontend fix
+      - name: Commit and push with diagnostic log
         run: |
-          if git diff --quiet; then
-            echo 'No changes produced.'
-            exit 0
-          fi
+          exec > >(tee ci-format-operation.log) 2>&1
+          set +e
+          echo '--- pre-add status ---'
+          git status --short
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add backend/app backend/tests frontend/components/modules/SupplierFoundationView.tsx
+          echo '--- staged status ---'
+          git status --short
           git commit -m 'ci: format backend and fix AsyncState prop'
-          git push
+          commit_rc=$?
+          echo "commit_rc=$commit_rc"
+          git rev-parse HEAD
+          if [[ $commit_rc -eq 0 ]]; then
+            git push origin HEAD:main
+            push_rc=$?
+          else
+            push_rc=99
+          fi
+          echo "push_rc=$push_rc"
+          printf 'COMMIT_RC=%s\nPUSH_RC=%s\n' "$commit_rc" "$push_rc" > ci-format-status.env
+          exit 0
+
+      - name: Upload operation evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-format-operation
+          path: |
+            ci-format-operation.log
+            ci-format-status.env
+          if-no-files-found: error
+
+      - name: Require commit and push success
+        run: |
+          source ci-format-status.env
+          test "$COMMIT_RC" -eq 0
+          test "$PUSH_RC" -eq 0
